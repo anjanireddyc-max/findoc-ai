@@ -37,16 +37,18 @@ def _box_sums(a, w, step):
     return c[Y + w, X + w] - c[Y, X + w] - c[Y + w, X] + c[Y, X], Y, X
 
 
-def load_threshold():
+def load_thresholds():
+    """Threshold for lossless scans (PNG, PDF pages) and for JPEG uploads, which were already compressed once."""
     if os.path.exists(THRESHOLD_PATH):
         with open(THRESHOLD_PATH) as f:
-            return float(json.load(f)["threshold"])
-    return 3.0
+            cfg = json.load(f)
+        return float(cfg["threshold"]), float(cfg.get("jpeg_threshold", cfg["threshold"]))
+    return 3.0, 3.0
 
 
 class ELADetector:
     def __init__(self):
-        self.threshold = load_threshold()
+        self.threshold, self.jpeg_threshold = load_thresholds()
 
     @staticmethod
     def prepare(image):
@@ -77,11 +79,12 @@ class ELADetector:
         boxes = [(int(x), int(y), int(x) + WINDOW, int(y) + WINDOW) for x, y in zip(X[keep], Y[keep])]
         return image, float(z.max()), boxes, z, e
 
-    def analyze(self, image):
+    def analyze(self, image, is_jpeg=False):
         image, z, boxes, zs, e = self.score(image)
-        label = "Tampered" if z >= self.threshold else "Genuine"
+        threshold = self.jpeg_threshold if is_jpeg else self.threshold
+        label = "Tampered" if z >= threshold else "Genuine"
         order = np.argsort(zs)[::-1] if len(zs) else []
-        flagged = [boxes[i] for i in order if zs[i] >= self.threshold][:8]
+        flagged = [boxes[i] for i in order if zs[i] >= threshold][:8]
         best = boxes[order[0]] if len(boxes) else (0, 0, WINDOW, WINDOW)
 
         # heatmap: window z-scores spread over the page, then smoothed
@@ -98,10 +101,10 @@ class ELADetector:
             "image": image,
             "label": label,
             "z": z,
-            "threshold": self.threshold,
+            "threshold": threshold,
             "windows": len(boxes),
             "flagged_boxes": flagged,
-            "flagged": int((zs >= self.threshold).sum()) if len(zs) else 0,
+            "flagged": int((zs >= threshold).sum()) if len(zs) else 0,
             "best_box": best,
             "heat": heat,
             "ela": np.clip(e * 12, 0, 255).astype(np.uint8),

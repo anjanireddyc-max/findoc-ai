@@ -1,5 +1,8 @@
 {
+  "method": "Error Level Analysis",
+  "rule": "ela",
   "threshold": 4.016,
+  "threshold_text": "z >= 4.02",
   "validation": {
     "accuracy": 0.7760416666666666,
     "precision": 0.41379310344827586,
@@ -36,6 +39,14 @@
   },
   "test_documents": 218,
   "test_tampered": 35,
-  "method": "Error Level Analysis",
-  "threshold_text": "z >= 4.02"
+  "all_test_auc": {
+    "ela": 0.7915690866510539,
+    "cnn_top": 0.7014832162373146,
+    "combined": 0.7511319281811085
+  },
+  "all_val_auc": {
+    "ela": 0.7985515532685343,
+    "cnn_top": 0.6957308938441014,
+    "combined": 0.7430912902611017
+  }
 }

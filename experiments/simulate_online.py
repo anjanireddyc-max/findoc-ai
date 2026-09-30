@@ -43,19 +43,24 @@ def edit(img, kind):
     return img
 
 
-df = pd.read_csv(os.path.join(BASE, "annotations", "test.csv"))
-genuine = df[df.forged == 0].image.tolist()[:60]
-res = {"genuine": [], "retype": [], "copymove": []}
-for i, name in enumerate(genuine):
-    src = Image.open(os.path.join(BASE, "dataset", "test", name)).convert("RGB")
-    online = jpeg(src, random.choice([80, 85, 90, 95]))            # "downloaded" genuine image
-    res["genuine"].append(det.analyze(online)["label"] == "Genuine")
-    for kind in ("retype", "copymove"):
-        edited = jpeg(edit(online, kind), random.choice([85, 90, 95]))   # edited and re-saved
-        res[kind].append(det.analyze(edited)["label"] == "Tampered")
+def main():
+    df = pd.read_csv(os.path.join(BASE, "annotations", "test.csv"))
+    genuine = df[df.forged == 0].image.tolist()[:60]
+    res = {"genuine": [], "retype": [], "copymove": []}
+    for i, name in enumerate(genuine):
+        src = Image.open(os.path.join(BASE, "dataset", "test", name)).convert("RGB")
+        online = jpeg(src, random.choice([80, 85, 90, 95]))            # "downloaded" genuine image
+        res["genuine"].append(det.analyze(online)["label"] == "Genuine")
+        for kind in ("retype", "copymove"):
+            edited = jpeg(edit(online, kind), random.choice([85, 90, 95]))   # edited and re-saved
+            res[kind].append(det.analyze(edited)["label"] == "Tampered")
+            if i < 3:
+                edited.save(os.path.join(OUT, f"edited_{kind}_{i}.jpg"), quality=95)
         if i < 3:
-            edited.save(os.path.join(OUT, f"edited_{kind}_{i}.jpg"), quality=95)
-    if i < 3:
-        online.save(os.path.join(OUT, f"genuine_{i}.jpg"), quality=95)
-for k, v in res.items():
-    print(f"{k:9s}: correct {sum(v)}/{len(v)}  ({100 * np.mean(v):.0f}%)")
+            online.save(os.path.join(OUT, f"genuine_{i}.jpg"), quality=95)
+    for k, v in res.items():
+        print(f"{k:9s}: correct {sum(v)}/{len(v)}  ({100 * np.mean(v):.0f}%)")
+
+
+if __name__ == "__main__":
+    main()

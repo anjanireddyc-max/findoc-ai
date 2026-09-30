@@ -31,3 +31,8 @@ models/efficientnetv2b0_patch_tampering_v3.keras
 models/*v4_ela.keras
 models/training_history_v4_ela.json
 models/efficientnetv2b0_patch_tampering_v2.keras
+
+.vercel
+.env*
+models/ela_backbone_fp32.onnx
+*.onnx.data

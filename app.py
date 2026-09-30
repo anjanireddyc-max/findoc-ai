@@ -155,8 +155,8 @@ if RULE["rule"] != "ela" and cnn is None:          # model files missing: fall b
     RULE = {"rule": "ela"}
 
 
-def analyze_page(image):
-    a = ela_detector.analyze(image)
+def analyze_page(image, is_jpeg=False):
+    a = ela_detector.analyze(image, is_jpeg)
     a["cnn_prob"], a["gradcam"] = None, None
     if cnn is not None:
         _, _, boxes, zs, _ = ela_detector.score(a["image"])
@@ -260,7 +260,8 @@ def predict():
             original_image=data_uri(limit(first)) if first is not None else None, out_of_domain=False)
 
     # ---------------- scanned / photographed documents: ELA ----------------
-    results = [(label, analyze_page(image)) for label, image in pages]
+    is_jpeg = extension(file.filename) in ("jpg", "jpeg")
+    results = [(label, analyze_page(image, is_jpeg)) for label, image in pages]
     page_label, a = max(results, key=lambda r: r[1]["decision_score"])
     if any(r["label"] == "Tampered" for _, r in results):
         a["label"] = "Tampered"
