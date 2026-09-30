@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Analysis Result</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">
+                Home
+            </a>
+
+            <a href="/detect">
+                Detect
+            </a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="result-page">
+
+    <div class="result-container">
+
+
+        <section class="result-header">
+
+            <div class="eyebrow">
+
+                <span></span>
+
+                ANALYSIS COMPLETE
+
+            </div>
+
+
+            <h1>
+                Document Analysis Result
+            </h1>
+
+
+            <p>
+                Your financial document has been analyzed
+                using EfficientNetV2B0 and Grad-CAM.
+            </p>
+
+        </section>
+
+
+        <!-- VERDICT -->
+
+        <section
+            class="verdict-card
+            {% if result == 'Tampered' %}
+                verdict-tampered
+            {% else %}
+                verdict-genuine
+            {% endif %}"
+        >
+
+            <div class="verdict-icon">
+
+                {% if result == "Tampered" %}
+                    !
+                {% else %}
+                    ✓
+                {% endif %}
+
+            </div>
+
+
+            <div class="verdict-content">
+
+                <span class="verdict-label">
+                    FINAL RESULT
+                </span>
+
+                <h2>
+                    {{ result }}
+                </h2>
+
+
+                {% if result == "Tampered" %}
+
+                <p>
+                    Suspicious visual patterns were detected
+                    in one or more document regions.
+                </p>
+
+                {% else %}
+
+                <p>
+                    No strong evidence of tampering was
+                    detected by the model.
+                </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="confidence">
+
+                <span>
+                    Confidence
+                </span>
+
+                <strong>
+                    {{ confidence }}%
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- STATS -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    REGIONS ANALYZED
+                </span>
+
+                <strong>
+                    {{ regions }}
+                </strong>
+
+                <p>
+                    Document regions processed
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    HIGHEST AI SCORE
+                </span>
+
+                <strong>
+                    {{ highest_score }}%
+                </strong>
+
+                <p>
+                    Highest regional risk score
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    AVERAGE AI SCORE
+                </span>
+
+                <strong>
+                    {{ average_score }}%
+                </strong>
+
+                <p>
+                    Average regional score
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    FLAGGED REGIONS
+                </span>
+
+                <strong>
+                    {{ flagged_regions }}
+                </strong>
+
+                <p>
+                    Regions above detection threshold
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- IMAGE ANALYSIS -->
+
+        <section class="analysis-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="step-label">
+                        STEP 02
+                    </div>
+
+                    <h2>
+                        AI Attention Map
+                    </h2>
+
+                </div>
+
+
+                <span class="section-note">
+                    Full-document Grad-CAM visualization
+                </span>
+
+            </div>
+
+
+            <div class="image-grid">
+
+
+                <!-- ORIGINAL -->
+
+                <div class="image-card">
+
+                    <div class="image-card-header">
+                        ORIGINAL DOCUMENT REGION
+                    </div>
+
+                    <div class="image-wrapper">
+
+                        <img
+                            src="{{ original_image }}"
+                            alt="Original document"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- GRAD CAM -->
+
+                <div class="image-card">
+
+                    <div class="image-card-header">
+                        GRAD-CAM EXPLANATION
+                    </div>
+
+                    <div class="image-wrapper">
+
+                        {% if gradcam_image %}
+
+                        <img
+                            src="{{ gradcam_image }}"
+                            alt="Grad-CAM explanation"
+                        >
+
+                        {% else %}
+
+                        <div class="no-result">
+                            Grad-CAM visualization unavailable.
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="attention-legend">
+
+                <div class="legend-title">
+                    HOW TO READ THE MAP
+                </div>
+
+
+                <div class="legend-items">
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot high"></span>
+
+                        Higher AI attention
+
+                    </div>
+
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot medium"></span>
+
+                        Moderate attention
+
+                    </div>
+
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot low"></span>
+
+                        Lower attention
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SUMMARY -->
+
+        <section class="summary-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="step-label">
+                        ANALYSIS SUMMARY
+                    </div>
+
+                    <h2>
+                        Detection details
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-grid">
+
+                <div class="summary-item">
+
+                    <span>
+                        Final classification
+                    </span>
+
+                    <strong
+                        class="{% if result == 'Tampered' %}
+                            text-danger
+                        {% else %}
+                            text-success
+                        {% endif %}"
+                    >
+                        {{ result }}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>
+                        Model confidence
+                    </span>
+
+                    <strong>
+                        {{ confidence }}%
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>
+                        Regions processed
+                    </span>
+
+                    <strong>
+                        {{ regions }}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>
+                        Detection threshold
+                    </span>
+
+                    <strong>
+                        50%
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- DISCLAIMER -->
+
+        <section class="disclaimer">
+
+            <div class="disclaimer-title">
+                IMPORTANT
+            </div>
+
+            <p>
+                FinDocAI is an AI-assisted document screening
+                system. Its result should be treated as an
+                additional verification signal rather than
+                definitive proof of document authenticity.
+            </p>
+
+        </section>
+
+
+        <div class="result-actions">
+
+            <a
+                href="/detect"
+                class="btn btn-primary"
+            >
+                Analyze Another Document →
+            </a>
+
+
+            <a
+                href="/"
+                class="btn btn-secondary"
+            >
+                Back to Home
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

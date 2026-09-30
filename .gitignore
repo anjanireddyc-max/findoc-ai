@@ -1,0 +1,33 @@
+# Python / environment
+venv/
+__pycache__/
+*.pyc
+.claude/
+
+# large data (download the "Find it again!" dataset separately, see README)
+dataset/
+patches/
+patches_ela/
+old_version/patches/
+
+# generated files
+static/uploads/*
+static/results/*
+!static/uploads/.gitkeep
+!static/results/.gitkeep
+gradcam_results/
+reports/window_scores_*.npz
+reports/cache_rgb/
+*.log
+app_log.txt
+train_log*.txt
+eval_*.txt
+prep_*.txt
+
+# old / experimental models (the app uses the files listed in the README)
+models/efficientnetv2b0_tampering.keras
+models/efficientnetv2b0_patch_tampering.keras
+models/efficientnetv2b0_patch_tampering_v3.keras
+models/*v4_ela.keras
+models/training_history_v4_ela.json
+models/efficientnetv2b0_patch_tampering_v2.keras

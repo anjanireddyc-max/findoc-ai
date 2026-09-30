@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Detect</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">
+                Home
+            </a>
+
+            <a href="/detect" class="active">
+                Detect
+            </a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="detect-page">
+
+    <div class="detect-container">
+
+
+        <section class="detect-header">
+
+            <div class="eyebrow">
+                <span></span>
+                DOCUMENT ANALYSIS
+            </div>
+
+            <h1>
+                Analyze a Financial Document
+            </h1>
+
+            <p>
+                Upload a receipt or invoice, or use your
+                camera to capture one instantly.
+            </p>
+
+        </section>
+
+
+        {% if error %}
+
+        <div class="error-message">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+        <section class="upload-card">
+
+            <div class="step-label">
+                STEP 01
+            </div>
+
+            <h2>
+                Add your document
+            </h2>
+
+            <p class="upload-description">
+                Upload an existing receipt or invoice,
+                or capture one using your device camera.
+            </p>
+
+
+            <form
+                action="/predict"
+                method="POST"
+                enctype="multipart/form-data"
+                id="documentForm"
+            >
+
+
+                <!-- UPLOAD -->
+
+                <div class="upload-box">
+
+                    <div class="upload-icon">
+                        ↑
+                    </div>
+
+                    <h3>
+                        Upload your document
+                    </h3>
+
+                    <p>
+                        PNG, JPG or JPEG
+                    </p>
+
+
+                    <label class="file-button">
+
+                        Choose File
+
+                        <input
+                            type="file"
+                            name="document"
+                            id="documentInput"
+                            accept="image/png,image/jpeg"
+                            hidden
+                        >
+
+                    </label>
+
+
+                    <div
+                        class="file-name"
+                        id="fileName"
+                    >
+                        No file selected
+                    </div>
+
+                </div>
+
+
+                <div class="or-divider">
+                    OR
+                </div>
+
+
+                <!-- CAMERA -->
+
+                <div class="camera-box">
+
+                    <div class="camera-icon">
+                        📷
+                    </div>
+
+                    <h3>
+                        Use your camera
+                    </h3>
+
+                    <p>
+                        Capture your receipt or invoice
+                        directly from your device.
+                    </p>
+
+
+                    <button
+                        type="button"
+                        class="camera-button"
+                        id="startCamera"
+                    >
+                        📷 Open Camera
+                    </button>
+
+
+                    <div
+                        class="camera-area"
+                        id="cameraArea"
+                    >
+
+                        <video
+                            id="cameraVideo"
+                            autoplay
+                            playsinline
+                        ></video>
+
+
+                        <div class="camera-controls">
+
+                            <button
+                                type="button"
+                                class="capture-button"
+                                id="captureButton"
+                            >
+                                Capture Photo
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="close-camera"
+                                id="closeCamera"
+                            >
+                                Close Camera
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="preview-area"
+                        id="previewArea"
+                    >
+
+                        <img
+                            id="capturedImage"
+                            alt="Captured document"
+                        >
+
+                        <button
+                            type="button"
+                            class="retake-button"
+                            id="retakeButton"
+                        >
+                            Retake Photo
+                        </button>
+
+                    </div>
+
+
+                    <canvas
+                        id="cameraCanvas"
+                        hidden
+                    ></canvas>
+
+                </div>
+
+
+                <!-- ANALYZE -->
+
+                <button
+                    type="submit"
+                    class="analyze-button"
+                    id="analyzeButton"
+                >
+                    Analyze Document
+                    <span>→</span>
+                </button>
+
+
+                <div class="security-note">
+
+                    <span>✓</span>
+
+                    Your image is processed by
+                    the document analysis system.
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <section class="next-section">
+
+            <div class="step-label">
+                WHAT HAPPENS NEXT
+            </div>
+
+            <h2>
+                Three stages of analysis
+            </h2>
+
+
+            <div class="process-grid">
+
+                <div class="process-card">
+
+                    <div class="process-number">
+                        01
+                    </div>
+
+                    <h3>
+                        Document Processing
+                    </h3>
+
+                    <p>
+                        The uploaded document is divided
+                        into image regions.
+                    </p>
+
+                </div>
+
+
+                <div class="process-card">
+
+                    <div class="process-number">
+                        02
+                    </div>
+
+                    <h3>
+                        AI Detection
+                    </h3>
+
+                    <p>
+                        EfficientNetV2B0 evaluates each
+                        region for suspicious patterns.
+                    </p>
+
+                </div>
+
+
+                <div class="process-card">
+
+                    <div class="process-number">
+                        03
+                    </div>
+
+                    <h3>
+                        Explainable Result
+                    </h3>
+
+                    <p>
+                        Grad-CAM highlights the region
+                        receiving the strongest attention.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+        </div>
+
+    </div>
+
+</footer>
+
+
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+
+</body>
+
+</html>

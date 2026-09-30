@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Performance</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">Home</a>
+
+            <a href="/detect">Detect</a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a
+                href="/performance"
+                class="active"
+            >
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="content-page">
+
+    <section class="page-heading">
+
+        <div class="eyebrow">
+
+            <span></span>
+
+            MODEL PERFORMANCE
+
+        </div>
+
+
+        <h1>
+            Performance of the detection model.
+        </h1>
+
+
+        <p>
+            Measured results of the tampering detector on the test receipts.
+        </p>
+
+    </section>
+
+
+    {% if metrics %}
+    <section class="performance-grid">
+
+        <div class="performance-card">
+            <span>ACCURACY</span>
+            <strong>{{ metrics.accuracy }}%</strong>
+            <p>Documents classified correctly out of {{ metrics.documents }} test documents.</p>
+        </div>
+
+        <div class="performance-card">
+            <span>PRECISION</span>
+            <strong>{{ metrics.precision }}%</strong>
+            <p>Of the documents flagged as tampered, the share that were actually tampered.</p>
+        </div>
+
+        <div class="performance-card">
+            <span>RECALL</span>
+            <strong>{{ metrics.recall }}%</strong>
+            <p>Share of the {{ metrics.tampered }} tampered test documents that were detected.</p>
+        </div>
+
+        <div class="performance-card">
+            <span>F1-SCORE</span>
+            <strong>{{ metrics.f1 }}%</strong>
+            <p>Balance between precision and recall.</p>
+        </div>
+
+        <div class="performance-card">
+            <span>AUC</span>
+            <strong>{{ metrics.auc }}%</strong>
+            <p>Area under the ROC curve measuring ranking performance.</p>
+        </div>
+
+    </section>
+
+
+    <section class="info-card">
+
+        <div class="section-label">
+            INTERPRETATION
+        </div>
+
+        <h2>
+            What these numbers mean.
+        </h2>
+
+        <p>
+            These results are measured on complete test documents that the model never saw
+            during training, exactly the way the Detect page analyses an uploaded document.
+            Out of {{ metrics.tampered }} tampered documents, {{ metrics.tp }} were detected and
+            {{ metrics.fn }} were missed; out of {{ metrics.documents - metrics.tampered }} genuine
+            documents, {{ metrics.fp }} were wrongly flagged. A document is reported as tampered
+            when its most unusual region reaches {{ metrics.threshold }} (method: {{ metrics.method }}).
+        </p>
+
+    </section>
+    {% else %}
+    <section class="info-card">
+        <h2>Metrics not available yet.</h2>
+        <p>Run <code>python evaluate.py</code> to measure the model on the test documents.</p>
+    </section>
+    {% endif %}
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

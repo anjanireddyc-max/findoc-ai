@@ -1,0 +1,17 @@
+venv/
+dataset/
+patches/
+patches_ela/
+old_version/
+experiments/
+reports/
+report/
+test_files/
+gradcam_results/
+annotations/
+static/uploads/
+static/results/
+__pycache__/
+*.keras
+*.txt
+!requirements.txt

@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 2048,
+      "includeFiles": "{templates/**,static/css/**,static/js/**,models/ela_backbone.onnx,models/ela_head.npz,models/ela_threshold.json,models/final_metrics.json}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
+}

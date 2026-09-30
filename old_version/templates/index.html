@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Home</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/" class="active">
+                Home
+            </a>
+
+            <a href="/detect">
+                Detect
+            </a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <section class="hero">
+
+        <div class="eyebrow">
+            <span></span>
+            AI-POWERED FINANCIAL SECURITY
+        </div>
+
+
+        <h1>
+            Detect Financial Document
+            <span>Tampering with AI</span>
+        </h1>
+
+
+        <p>
+            Analyze receipts and invoices for signs of
+            digital manipulation using EfficientNetV2B0
+            and understand the prediction with Grad-CAM.
+        </p>
+
+
+        <div class="hero-buttons">
+
+            <a
+                href="/detect"
+                class="btn btn-primary"
+            >
+                Analyze a Document →
+            </a>
+
+            <a
+                href="/how-it-works"
+                class="btn btn-secondary"
+            >
+                See How It Works ↗
+            </a>
+
+        </div>
+
+
+        <div class="hero-features">
+
+            <span>✓ Explainable AI</span>
+
+            <span>✓ Image-based analysis</span>
+
+            <span>✓ Grad-CAM visualization</span>
+
+        </div>
+
+    </section>
+
+
+    <section class="home-section">
+
+        <div class="section-label">
+            DOCUMENT ANALYSIS
+        </div>
+
+        <h2>
+            Understand what the AI sees.
+        </h2>
+
+        <p class="section-intro">
+            FinDocAI analyzes document regions and
+            provides an explainable attention map
+            alongside its prediction.
+        </p>
+
+
+        <div class="feature-grid">
+
+            <div class="feature-card">
+
+                <div class="feature-number">
+                    01
+                </div>
+
+                <h3>
+                    EfficientNetV2B0
+                </h3>
+
+                <p>
+                    Deep-learning image analysis identifies
+                    visual patterns associated with
+                    potentially manipulated regions.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-number">
+                    02
+                </div>
+
+                <h3>
+                    Document Tiling
+                </h3>
+
+                <p>
+                    Large documents are divided into
+                    manageable regions so suspicious areas
+                    can be analyzed individually.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-number">
+                    03
+                </div>
+
+                <h3>
+                    Grad-CAM
+                </h3>
+
+                <p>
+                    An attention map highlights areas that
+                    contributed strongly to the AI prediction.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+   <section class="hero">
+
+    <div class="hero-content">
+
+        <div class="eyebrow">
+            <span></span>
+            AI-POWERED FINANCIAL SECURITY
+        </div>
+
+        <h1>
+            Detect Financial Document
+            <span>Tampering with AI</span>
+        </h1>
+
+        <p>
+            Analyze receipts and invoices for signs of
+            digital manipulation using EfficientNetV2B0
+            and understand the prediction with Grad-CAM.
+        </p>
+
+        <div class="hero-buttons">
+
+            <a
+                href="/detect"
+                class="btn btn-primary"
+            >
+                Analyze a Document →
+            </a>
+
+            <a
+                href="/how-it-works"
+                class="btn btn-secondary"
+            >
+                See How It Works ↗
+            </a>
+
+        </div>
+
+        <div class="hero-features">
+
+            <span>✓ Explainable AI</span>
+            <span>✓ Image-based analysis</span>
+            <span>✓ Grad-CAM visualization</span>
+
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT SIDE PROJECT VISUAL -->
+
+    <div class="hero-visual">
+
+        <div class="visual-card">
+
+            <div class="visual-header">
+                <span>DOCUMENT ANALYSIS</span>
+
+                <span class="status-dot"></span>
+            </div>
+
+
+            <div class="invoice-preview">
+
+                <div class="invoice-heading">
+                    <div>
+                        <small>FINANCIAL DOCUMENT</small>
+                        <h3>INVOICE</h3>
+                    </div>
+
+                    <div class="invoice-logo">
+                        FD
+                    </div>
+                </div>
+
+
+                <div class="invoice-info">
+
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+
+                </div>
+
+
+                <div class="invoice-table">
+
+                    <div class="table-heading">
+                        <span>ITEM</span>
+                        <span>QTY</span>
+                        <span>AMOUNT</span>
+                    </div>
+
+                    <div>
+                        <span>Product</span>
+                        <span>2</span>
+                        <span>₹4,500</span>
+                    </div>
+
+                    <div>
+                        <span>Service</span>
+                        <span>1</span>
+                        <span>₹8,450</span>
+                    </div>
+
+                    <div>
+                        <span>Other</span>
+                        <span>1</span>
+                        <span>₹2,500</span>
+                    </div>
+
+                </div>
+
+
+                <!-- suspicious region -->
+
+                <div class="suspicious-region">
+
+                    <span>₹8,450</span>
+
+                    <div class="scan-line"></div>
+
+                </div>
+
+
+                <div class="invoice-total">
+
+                    <span>Total</span>
+
+                    <strong>
+                        ₹24,850
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- AI ANALYSIS CARD -->
+
+            <div class="ai-analysis">
+
+                <div class="ai-icon">
+                    AI
+                </div>
+
+                <div>
+
+                    <strong>
+                        AI Analysis
+                    </strong>
+
+                    <small>
+                        EfficientNetV2B0
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- GRAD CAM CARD -->
+
+            <div class="gradcam-card">
+
+                <div class="gradcam-title">
+                    Grad-CAM
+                </div>
+
+                <div class="heatmap">
+
+                    <div class="heat-hot"></div>
+
+                    <div class="heat-medium"></div>
+
+                </div>
+
+                <div class="heat-label">
+                    Suspicious region
+                </div>
+
+            </div>
+
+
+            <!-- RESULT -->
+
+            <div class="result-badge">
+
+                <span class="result-check">
+                    !
+                </span>
+
+                <div>
+
+                    <strong>
+                        Tampered
+                    </strong>
+
+                    <small>
+                        97.8% confidence
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+    <section class="dark-section">
+
+        <div class="section-label">
+            WHY THIS MATTERS
+        </div>
+
+        <h2>
+            Financial documents deserve
+            better verification.
+        </h2>
+
+        <p>
+            Receipts and invoices may contain altered
+            amounts, modified text or digitally manipulated
+            regions. FinDocAI provides an additional
+            AI-assisted layer of verification.
+        </p>
+
+        <a
+            href="/detect"
+            class="btn btn-light"
+        >
+            Try Document Detection →
+        </a>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+        </div>
+
+
+        <div class="footer-links">
+
+            <a href="/">Home</a>
+            <a href="/detect">Detect</a>
+            <a href="/how-it-works">How It Works</a>
+            <a href="/performance">Performance</a>
+            <a href="/about">About</a>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Performance</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">Home</a>
+
+            <a href="/detect">Detect</a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a
+                href="/performance"
+                class="active"
+            >
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="content-page">
+
+    <section class="page-heading">
+
+        <div class="eyebrow">
+
+            <span></span>
+
+            MODEL PERFORMANCE
+
+        </div>
+
+
+        <h1>
+            Performance of the detection model.
+        </h1>
+
+
+        <p>
+            Evaluation metrics from the trained
+            EfficientNetV2B0 document tampering model.
+        </p>
+
+    </section>
+
+
+    <section class="performance-grid">
+
+
+        <div class="performance-card">
+
+            <span>
+                ACCURACY
+            </span>
+
+            <strong>
+                97.85%
+            </strong>
+
+            <p>
+                Overall classification accuracy
+                on the test set.
+            </p>
+
+        </div>
+
+
+        <div class="performance-card">
+
+            <span>
+                PRECISION
+            </span>
+
+            <strong>
+                91.43%
+            </strong>
+
+            <p>
+                Proportion of predicted tampered
+                samples that were actually tampered.
+            </p>
+
+        </div>
+
+
+        <div class="performance-card">
+
+            <span>
+                RECALL
+            </span>
+
+            <strong>
+                95.05%
+            </strong>
+
+            <p>
+                Ability to identify tampered
+                samples correctly.
+            </p>
+
+        </div>
+
+
+        <div class="performance-card">
+
+            <span>
+                AUC
+            </span>
+
+            <strong>
+                97.80%
+            </strong>
+
+            <p>
+                Area under the ROC curve measuring
+                ranking performance.
+            </p>
+
+        </div>
+
+
+        <div class="performance-card">
+
+            <span>
+                LOSS
+            </span>
+
+            <strong>
+                0.0877
+            </strong>
+
+            <p>
+                Reported model loss from the
+                completed training run.
+            </p>
+
+        </div>
+
+
+    </section>
+
+
+    <section class="info-card">
+
+        <div class="section-label">
+            INTERPRETATION
+        </div>
+
+        <h2>
+            What these numbers mean.
+        </h2>
+
+        <p>
+            The model achieved high test accuracy and AUC,
+            while recall indicates strong detection of
+            tampered samples. Precision is also important
+            because it reflects how often a tampering
+            prediction is correct.
+        </p>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

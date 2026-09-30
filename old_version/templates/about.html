@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | About</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">Home</a>
+
+            <a href="/detect">Detect</a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a
+                href="/about"
+                class="active"
+            >
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="content-page">
+
+    <section class="page-heading">
+
+        <div class="eyebrow">
+
+            <span></span>
+
+            ABOUT FINDOC AI
+
+        </div>
+
+
+        <h1>
+            Making financial document
+            verification more explainable.
+        </h1>
+
+
+        <p>
+            FinDocAI is an AI-powered prototype designed
+            to identify suspicious visual patterns in
+            financial documents.
+        </p>
+
+    </section>
+
+
+    <section class="about-grid">
+
+
+        <div class="info-card">
+
+            <div class="section-label">
+                THE TECHNOLOGY
+            </div>
+
+            <h2>
+                EfficientNetV2B0
+            </h2>
+
+            <p>
+                The system uses EfficientNetV2B0 as its
+                image classification backbone. Financial
+                documents are analyzed as image regions
+                rather than relying only on extracted text.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="section-label">
+                EXPLAINABILITY
+            </div>
+
+            <h2>
+                Grad-CAM
+            </h2>
+
+            <p>
+                Grad-CAM provides a visual explanation of
+                the model's attention by highlighting
+                regions that contributed strongly to the
+                prediction.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="section-label">
+                INPUT
+            </div>
+
+            <h2>
+                Receipts & Invoices
+            </h2>
+
+            <p>
+                Users can upload an image or capture a
+                document using their device camera.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="section-label">
+                OUTPUT
+            </div>
+
+            <h2>
+                Actionable Analysis
+            </h2>
+
+            <p>
+                The application reports a classification,
+                confidence, regional scores and a
+                Grad-CAM visualization.
+            </p>
+
+        </div>
+
+
+    </section>
+
+
+    <section class="dark-section">
+
+        <div class="section-label">
+            FINALLY
+        </div>
+
+        <h2>
+            AI should explain its decisions.
+        </h2>
+
+        <p>
+            FinDocAI combines detection with visual
+            explanation so that users can see not only
+            what the model predicted, but also where
+            the model focused.
+        </p>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

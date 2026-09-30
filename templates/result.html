@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Analysis Result</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">
+                Home
+            </a>
+
+            <a href="/detect">
+                Detect
+            </a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="result-page">
+
+    <div class="result-container">
+
+
+        <section class="result-header">
+
+            <div class="eyebrow">
+
+                <span></span>
+
+                ANALYSIS COMPLETE
+
+            </div>
+
+
+            <h1>
+                Document Analysis Result
+            </h1>
+
+
+            <p>
+                Your financial document has been analyzed
+                using Error Level Analysis, EfficientNetV2B0 and Grad-CAM.
+            </p>
+
+        </section>
+
+
+        <!-- VERDICT -->
+
+        <section class="verdict-card {{ verdict_class }}">
+
+            <div class="verdict-icon">
+                {% if verdict_class == "verdict-tampered" %}!{% elif verdict_class == "verdict-neutral" %}i{% else %}✓{% endif %}
+            </div>
+
+            <div class="verdict-content">
+                <span class="verdict-label">
+                    {% if digital %}DIGITAL DOCUMENT &middot; {{ kind|upper }}{% else %}FINAL RESULT{% endif %}
+                </span>
+                <h2>
+                    {{ result }}
+                </h2>
+                <p>
+                    {{ verdict_text }}
+                </p>
+            </div>
+
+            <div class="confidence">
+                {% if digital %}
+                <span>Editing signals</span>
+                <strong>{{ signals }}</strong>
+                {% else %}
+                <span>Tampering score</span>
+                <strong>{{ confidence }}</strong>
+                {% endif %}
+            </div>
+
+        </section>
+
+
+        {% if out_of_domain %}
+        <section class="disclaimer">
+            <div class="disclaimer-title">
+                DOCUMENT TYPE WARNING
+            </div>
+            <p>
+                This document contains colour graphics or a design that differs from the
+                scanned retail receipts the model was trained on. Coloured graphic areas
+                were skipped, but the result for this type of document is less reliable.
+            </p>
+        </section>
+        {% endif %}
+
+
+        <!-- WHY -->
+
+        <section class="explain-section">
+
+            <div class="step-label">
+                WHY THIS RESULT
+            </div>
+
+            <h2>
+                Reasons for the decision
+            </h2>
+
+            {% if page_label %}
+            <p class="explain-file">
+                File: {{ file_name }} &middot; {{ page_count }} pages analysed &middot; showing {{ page_label }}
+            </p>
+            {% else %}
+            <p class="explain-file">
+                File: {{ file_name }}
+            </p>
+            {% endif %}
+
+            <ul class="explain-list">
+                {% for reason in reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+
+        </section>
+
+
+        {% if not digital %}
+
+        <!-- STATS -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    REGIONS ANALYZED
+                </span>
+
+                <strong>
+                    {{ regions }}
+                </strong>
+
+                <p>
+                    Document regions processed
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    TAMPERING SCORE (Z)
+                </span>
+
+                <strong>
+                    {{ highest_score }}
+                </strong>
+
+                <p>
+                    Most unusual region
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    DECISION THRESHOLD
+                </span>
+
+                <strong>
+                    {{ threshold }}
+                </strong>
+
+                <p>
+                    Chosen on validation receipts
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    FLAGGED REGIONS
+                </span>
+
+                <strong>
+                    {{ flagged_regions }}
+                </strong>
+
+                <p>
+                    Regions above the detection threshold
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- IMAGE ANALYSIS -->
+
+        <section class="analysis-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="step-label">
+                        STEP 02
+                    </div>
+
+                    <h2>
+                        Tampering Heatmap
+                    </h2>
+
+                </div>
+
+
+                <span class="section-note">
+                    Where the page is inconsistent
+                </span>
+
+            </div>
+
+
+            <div class="image-grid">
+
+
+                <!-- ORIGINAL -->
+
+                <div class="image-card">
+
+                    <div class="image-card-header">
+                        ORIGINAL DOCUMENT
+                    </div>
+
+                    <div class="image-wrapper">
+
+                        <img
+                            src="{{ original_image }}"
+                            alt="Original document"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- GRAD CAM -->
+
+                <div class="image-card">
+
+                    <div class="image-card-header">
+                        {{ heat_label or "HEATMAP" }}
+                    </div>
+
+                    <div class="image-wrapper">
+
+                        {% if gradcam_image %}
+
+                        <img
+                            src="{{ gradcam_image }}"
+                            alt="Tampering heatmap"
+                        >
+
+                        {% else %}
+
+                        <div class="no-result">
+                            Heatmap unavailable.
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="attention-legend">
+
+                <div class="legend-title">
+                    HOW TO READ THE MAP
+                </div>
+
+
+                <div class="legend-items">
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot high"></span>
+
+                        Most unusual
+
+                    </div>
+
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot medium"></span>
+
+                        Somewhat unusual
+
+                    </div>
+
+
+                    <div class="legend-item">
+
+                        <span class="legend-dot low"></span>
+
+                        Consistent
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MOST SUSPICIOUS REGION + HOW -->
+
+        <section class="explain-section explain-grid">
+
+            {% if region_image %}
+            <div class="region-card">
+                <div class="image-card-header">
+                    MOST SUSPICIOUS REGION (ZOOMED)
+                </div>
+                <img src="{{ region_image }}" alt="Most suspicious region">
+                <p>Score {{ highest_score }} &middot; threshold {{ threshold }}</p>
+            </div>
+            {% endif %}
+
+            <div>
+                <div class="step-label">
+                    HOW IT WAS DECIDED
+                </div>
+
+                <h2>
+                    Analysis steps
+                </h2>
+
+                <ol class="how-list">
+                    {% for step in steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+
+        </section>
+
+
+        <!-- SUMMARY -->
+
+        <section class="summary-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="step-label">
+                        ANALYSIS SUMMARY
+                    </div>
+
+                    <h2>
+                        Detection details
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-grid">
+
+                <div class="summary-item">
+
+                    <span>
+                        Final classification
+                    </span>
+
+                    <strong
+                        class="{% if verdict_class == 'verdict-tampered' %}
+                            text-danger
+                        {% else %}
+                            text-success
+                        {% endif %}"
+                    >
+                        {{ result }}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>
+                        Tampering score
+                    </span>
+
+                    <strong>
+                        {{ confidence }}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>
+                        Regions processed
+                    </span>
+
+                    <strong>
+                        {{ regions }}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>
+                        Detection threshold
+                    </span>
+
+                    <strong>
+                        {{ threshold }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        {% else %}
+
+        <!-- DIGITAL DOCUMENT: PAGE PREVIEW + HOW -->
+
+        <section class="explain-section explain-grid">
+            <div class="region-card">
+                <div class="image-card-header">
+                    {{ page_label or "PAGE 1" }} (RENDERED)
+                </div>
+                {% if original_image %}
+                <img src="{{ original_image }}" alt="Rendered page">
+                {% else %}
+                <p>A page preview could not be created for this file (Microsoft Office is needed to render Word and PowerPoint pages). The metadata check above is complete.</p>
+                {% endif %}
+            </div>
+            <div>
+                <div class="step-label">
+                    HOW IT WAS DECIDED
+                </div>
+                <h2>
+                    Analysis steps
+                </h2>
+                <ol class="how-list">
+                    {% for step in steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </section>
+
+        {% endif %}
+
+
+        <!-- DISCLAIMER -->
+
+        <section class="disclaimer">
+
+            <div class="disclaimer-title">
+                IMPORTANT
+            </div>
+
+            <p>
+                FinDocAI is an AI-assisted document screening
+                system. Its result should be treated as an
+                additional verification signal rather than
+                definitive proof of document authenticity.
+            </p>
+
+        </section>
+
+
+        <div class="result-actions">
+
+            <a
+                href="/detect"
+                class="btn btn-primary"
+            >
+                Analyze Another Document →
+            </a>
+
+
+            <a
+                href="/"
+                class="btn btn-secondary"
+            >
+                Back to Home
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

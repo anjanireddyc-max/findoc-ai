@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | Home</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/" class="active">
+                Home
+            </a>
+
+            <a href="/detect">
+                Detect
+            </a>
+
+            <a href="/how-it-works">
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <section class="hero hero-split">
+
+        <div class="hero-content">
+
+            <div class="eyebrow">
+                <span></span>
+                AI-POWERED FINANCIAL SECURITY
+            </div>
+
+            <h1>
+                Detect Financial Document
+                <span>Tampering with AI</span>
+            </h1>
+
+            <p>
+                Analyze receipts and invoices for signs of
+                digital manipulation using EfficientNetV2B0
+                and understand the prediction with Grad-CAM.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="/detect" class="btn btn-primary">Analyze a Document &rarr;</a>
+                <a href="/how-it-works" class="btn btn-secondary">See How It Works &#8599;</a>
+            </div>
+
+            <div class="hero-features">
+                <span>&#10003; Explainable AI</span>
+                <span>&#10003; Image-based analysis</span>
+                <span>&#10003; Grad-CAM visualization</span>
+            </div>
+
+        </div>
+
+
+        <!-- document-analysis visual -->
+
+        <div class="hero-visual" aria-hidden="true">
+
+            <div class="analysis-frame">
+
+                <div class="analysis-bar">
+                    <span>DOCUMENT ANALYSIS</span>
+                    <strong>AI</strong>
+                </div>
+
+                <div class="qm-invoice">
+
+                    <div class="qm-head">
+                        <div>
+                            <div class="qm-brand">QuickMart</div>
+                            <div class="qm-tag">Quality Products. Better Living.</div>
+                        </div>
+                        <div class="qm-title">INVOICE</div>
+                    </div>
+
+                    <div class="qm-lines">
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <div class="qm-table">
+                        <div class="qm-row qm-row-head"><span>Item</span><span>Qty</span><span>Total</span></div>
+                        <div class="qm-row"><span>Basmati Rice</span><span>2</span><span>&#8377;240</span></div>
+                        <div class="qm-row"><span>Sunflower Oil</span><span>1</span><span>&#8377;135</span></div>
+                        <div class="qm-row qm-row-flag"><span>Wheat Flour</span><span>1</span><span class="qm-flag">&#8377;90<i class="qm-heat qm-heat-a"></i><i class="qm-heat qm-heat-b"></i></span></div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="home-section">
+
+        <div class="section-label">
+            DOCUMENT ANALYSIS
+        </div>
+
+        <h2>
+            Understand what the AI sees.
+        </h2>
+
+        <p class="section-intro">
+            FinDocAI analyzes document regions and
+            provides an explainable attention map
+            alongside its prediction.
+        </p>
+
+
+        <div class="feature-grid">
+
+            <div class="feature-card">
+
+                <div class="feature-number">
+                    01
+                </div>
+
+                <h3>
+                    EfficientNetV2B0
+                </h3>
+
+                <p>
+                    Deep-learning image analysis identifies
+                    visual patterns associated with
+                    potentially manipulated regions.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-number">
+                    02
+                </div>
+
+                <h3>
+                    Document Tiling
+                </h3>
+
+                <p>
+                    Large documents are divided into
+                    manageable regions so suspicious areas
+                    can be analyzed individually.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <div class="feature-number">
+                    03
+                </div>
+
+                <h3>
+                    Grad-CAM
+                </h3>
+
+                <p>
+                    An attention map highlights areas that
+                    contributed strongly to the AI prediction.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="dark-section">
+
+        <div class="section-label">
+            WHY THIS MATTERS
+        </div>
+
+        <h2>
+            Financial documents deserve
+            better verification.
+        </h2>
+
+        <p>
+            Receipts and invoices may contain altered
+            amounts, modified text or digitally manipulated
+            regions. FinDocAI provides an additional
+            AI-assisted layer of verification.
+        </p>
+
+        <a
+            href="/detect"
+            class="btn btn-light"
+        >
+            Try Document Detection →
+        </a>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+        </div>
+
+
+        <div class="footer-links">
+
+            <a href="/">Home</a>
+            <a href="/detect">Detect</a>
+            <a href="/how-it-works">How It Works</a>
+            <a href="/performance">Performance</a>
+            <a href="/about">About</a>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

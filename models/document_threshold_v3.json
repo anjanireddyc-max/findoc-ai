@@ -1,0 +1,5 @@
+{
+  "threshold": 0.6071,
+  "aggregation": "top5",
+  "model": "efficientnetv2b0_patch_tampering_v3.keras"
+}

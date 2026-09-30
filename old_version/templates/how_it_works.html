@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinDocAI | How It Works</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="/" class="brand">
+
+            <div class="brand-icon">
+                FD
+            </div>
+
+            <div class="brand-name">
+                FinDoc<span>AI</span>
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="/">Home</a>
+
+            <a href="/detect">Detect</a>
+
+            <a
+                href="/how-it-works"
+                class="active"
+            >
+                How It Works
+            </a>
+
+            <a href="/performance">
+                Performance
+            </a>
+
+            <a href="/about">
+                About
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<main class="content-page">
+
+    <section class="page-heading">
+
+        <div class="eyebrow">
+            <span></span>
+            HOW IT WORKS
+        </div>
+
+        <h1>
+            From document to AI explanation.
+        </h1>
+
+        <p>
+            FinDocAI combines image classification,
+            document region analysis and Grad-CAM
+            visualization into one workflow.
+        </p>
+
+    </section>
+
+
+    <section class="steps-list">
+
+
+        <div class="large-step">
+
+            <div class="large-step-number">
+                01
+            </div>
+
+            <div>
+
+                <h2>
+                    Upload or capture
+                </h2>
+
+                <p>
+                    Provide a receipt or invoice through
+                    an image upload or directly through
+                    your device camera.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="large-step">
+
+            <div class="large-step-number">
+                02
+            </div>
+
+            <div>
+
+                <h2>
+                    Divide into regions
+                </h2>
+
+                <p>
+                    Large documents are divided into
+                    smaller image regions for localized
+                    analysis.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="large-step">
+
+            <div class="large-step-number">
+                03
+            </div>
+
+            <div>
+
+                <h2>
+                    EfficientNetV2B0 analysis
+                </h2>
+
+                <p>
+                    Each region is evaluated by the trained
+                    EfficientNetV2B0 model to estimate
+                    suspicious visual patterns.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="large-step">
+
+            <div class="large-step-number">
+                04
+            </div>
+
+            <div>
+
+                <h2>
+                    Grad-CAM explanation
+                </h2>
+
+                <p>
+                    Grad-CAM generates an attention map
+                    showing which visual areas contributed
+                    strongly to the prediction.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="large-step">
+
+            <div class="large-step-number">
+                05
+            </div>
+
+            <div>
+
+                <h2>
+                    Final classification
+                </h2>
+
+                <p>
+                    Regional scores are combined into a
+                    document-level result of Genuine or
+                    Tampered.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="dark-section">
+
+        <div class="section-label">
+            READY TO TRY?
+        </div>
+
+        <h2>
+            Analyze your document.
+        </h2>
+
+        <a
+            href="/detect"
+            class="btn btn-light"
+        >
+            Start Detection →
+        </a>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <strong>
+                FinDoc<span>AI</span>
+            </strong>
+
+            <p>
+                AI-powered financial document analysis.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>

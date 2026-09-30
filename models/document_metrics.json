@@ -1,0 +1,41 @@
+{
+  "threshold": 0.7785,
+  "aggregation": "max",
+  "model": "efficientnetv2b0_patch_tampering_v2.keras",
+  "validation": {
+    "accuracy": 0.4427083333333333,
+    "precision": 0.19672131147540983,
+    "recall": 0.7272727272727273,
+    "f1": 0.3096774193548387,
+    "auc": 0.5364017533828854,
+    "confusion_matrix": [
+      [
+        61,
+        98
+      ],
+      [
+        9,
+        24
+      ]
+    ]
+  },
+  "test": {
+    "accuracy": 0.43577981651376146,
+    "precision": 0.16666666666666666,
+    "recall": 0.6285714285714286,
+    "f1": 0.2634730538922156,
+    "auc": 0.4704137392661983,
+    "confusion_matrix": [
+      [
+        73,
+        110
+      ],
+      [
+        13,
+        22
+      ]
+    ]
+  },
+  "test_documents": 218,
+  "test_tampered": 35
+}
