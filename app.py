@@ -179,6 +179,31 @@ def analyze_page(image, is_jpeg=False):
     return a
 
 
+def metadata_result(info, pages, common):
+    """Result page for typed Word / PowerPoint / digital PDF files (metadata check)."""
+    page_label, first = pages[0]
+    edited = info["signals"] > 0
+    reasons = [f"This is a {info['kind']}: its pages were produced by software, not scanned or photographed, "
+               "so there are no scanning or compression traces to analyse. The image-based tampering score is "
+               "therefore not used for this file."] + info["findings"]
+    reasons.append("Signs of editing were found in the file's metadata; compare the document with the original "
+                   "from its issuer." if edited else
+                   "No signs of editing were found in the file's metadata. Metadata can be removed or changed, "
+                   "so this is not proof that the content is genuine.")
+    steps = ["The file type and structure were checked (Word, PowerPoint or PDF with a text layer).",
+             "The metadata was read: creating program, author, last editor, creation and modification dates, "
+             "revision count and, for PDFs, the number of saves and the PDF tools used.",
+             "Each finding that indicates editing after creation was counted as an editing signal."]
+    return render_template(
+        "result.html", digital=True, **common,
+        result="Signs of editing found" if edited else "No signs of editing found",
+        verdict_class="verdict-neutral" if edited else "verdict-genuine",
+        verdict_text="The file's metadata shows that it was changed after it was created." if edited else
+                     "The metadata does not show changes after creation.",
+        reasons=reasons, steps=steps, page_label=page_label if len(pages) > 1 else None,
+        original_image=data_uri(limit(first)) if first is not None else None, out_of_domain=False)
+
+
 # =========================================================
 # PAGES
 # =========================================================
@@ -235,29 +260,8 @@ def predict():
     info = inspect_file(data, extension(file.filename), used_pictures)
     common = dict(file_name=file.filename, page_count=len(pages), kind=info["kind"], signals=info["signals"])
 
-    # ---------------- digital documents: metadata assessment ----------------
-    if info["digital"]:
-        page_label, first = pages[0]
-        edited = info["signals"] > 0
-        reasons = [f"This is a {info['kind']}: its pages were produced by software, not scanned or photographed, "
-                   "so there are no scanning or compression traces to analyse. The image-based tampering score is "
-                   "therefore not used for this file."] + info["findings"]
-        reasons.append("Signs of editing were found in the file's metadata; compare the document with the original "
-                       "from its issuer." if edited else
-                       "No signs of editing were found in the file's metadata. Metadata can be removed or changed, "
-                       "so this is not proof that the content is genuine.")
-        steps = ["The file type and structure were checked (Word, PowerPoint or PDF with a text layer).",
-                 "The metadata was read: creating program, author, last editor, creation and modification dates, "
-                 "revision count and, for PDFs, the number of saves and the PDF tools used.",
-                 "Each finding that indicates editing after creation was counted as an editing signal."]
-        return render_template(
-            "result.html", digital=True, **common,
-            result="Signs of editing found" if edited else "No signs of editing found",
-            verdict_class="verdict-neutral" if edited else "verdict-genuine",
-            verdict_text="The file's metadata shows that it was changed after it was created." if edited else
-                         "The metadata does not show changes after creation.",
-            reasons=reasons, steps=steps, page_label=page_label if len(pages) > 1 else None,
-            original_image=data_uri(limit(first)) if first is not None else None, out_of_domain=False)
+    if info["digital"]:                    # typed Word / PowerPoint / digital PDF
+        return metadata_result(info, pages, common)   # (see Section 4.11.6)
 
     # ---------------- scanned / photographed documents: ELA ----------------
     is_jpeg = extension(file.filename) in ("jpg", "jpeg")
