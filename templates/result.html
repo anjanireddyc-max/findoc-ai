@@ -385,7 +385,7 @@
             {% if region_image %}
             <div class="region-card">
                 <div class="image-card-header">
-                    MOST SUSPICIOUS REGION (ZOOMED)
+                    {{ region_label or "MOST SUSPICIOUS REGION (ZOOMED)" }}
                 </div>
                 <img src="{{ region_image }}" alt="Most suspicious region">
                 <p>Score {{ highest_score }} &middot; threshold {{ threshold }}</p>

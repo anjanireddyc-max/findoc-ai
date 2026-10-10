@@ -272,13 +272,16 @@ def predict():
     tampered = a["label"] == "Tampered"
 
     page = a["image"]
-    heat_img = overlay(page, a["heat"], a["flagged_boxes"] or [a["best_box"]])
+    # colours are relative to the decision threshold: a genuine page stays blue / cyan and only
+    # regions that reach the threshold turn red; boxes are drawn only around flagged regions
+    strength = min(1.0, max(a["decision_score"], 0.0) / max(a["decision_threshold"], 1e-6))
+    heat_img = overlay(page, a["heat"] * strength, a["flagged_boxes"] if tampered else [])
     bx = a.get("cnn_box") or a["best_box"]
     region = page.crop(bx)
     if a.get("gradcam") is not None:
-        region = overlay(region, a["gradcam"], [])
+        region = overlay(region, a["gradcam"] * strength, [])
     else:
-        region = overlay(region, a["heat"][bx[1]:bx[3], bx[0]:bx[2]], [])
+        region = overlay(region, a["heat"][bx[1]:bx[3], bx[0]:bx[2]] * strength, [])
     region = region.resize((320, 320), Image.NEAREST)
 
     reasons, steps = explain(a, page_label, len(pages), load_metrics(), info)
@@ -294,7 +297,9 @@ def predict():
         page_label=page_label if len(pages) > 1 else None,
         reasons=reasons, steps=steps,
         original_image=data_uri(limit(page)), gradcam_image=data_uri(limit(heat_img)), region_image=data_uri(region),
-        heat_label="GRAD-CAM (EFFICIENTNETV2B0-ELA)" if a.get("gradcam") is not None else "ELA HEATMAP",
+        region_label="MOST SUSPICIOUS REGION - GRAD-CAM (EFFICIENTNETV2B0-ELA)" if a.get("gradcam") is not None
+                     else "MOST SUSPICIOUS REGION (ZOOMED)",
+        heat_label="ELA TAMPERING HEATMAP" if tampered else "ELA HEATMAP (NO REGION ABOVE THRESHOLD)",
     )
 
 
