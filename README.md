@@ -45,12 +45,20 @@ python export_onnx.py                       # ONNX backbone + head weights for t
 
 ## Deployment
 
-`vercel.json` + `api/index.py` deploy the Flask app to Vercel. The web app needs only Flask, NumPy, Pillow,
-PyMuPDF and ONNX Runtime (no TensorFlow). Uploads are limited to 4 MB on Vercel.
+Vercel detects the FastAPI `app` in `app.py` (Python 3.12). The web app needs only FastAPI, python-multipart,
+itsdangerous, Jinja2, NumPy, Pillow, PyMuPDF and ONNX Runtime (no TensorFlow). Uploads are limited to 4 MB on Vercel.
+Set the `ADMIN_PASSWORD` environment variable to enable the admin panel at `/admin`.
+
+## API
+
+- `POST /api/analyze` – upload a document (`document` field), get the verdict, score and reasons as JSON
+- `GET /api/health` – detector and model status
+- `/docs` – interactive API documentation (Swagger UI)
 
 ## Files
 
-- `app.py` – Flask routes, reasons and heatmaps
+- `app.py` – FastAPI routes, JSON API, reasons and heatmaps (`python app.py` starts Uvicorn)
+- `admin.py`, `admin_settings.py` – admin panel: login, dashboard, settings, self-test
 - `forensics.py`, `ela.py` – ELA detector
 - `ela_cnn.py` – EfficientNetV2B0-ELA inference and Grad-CAM with ONNX Runtime
 - `metadata.py` – metadata checks for PDF, DOCX, PPTX and images
