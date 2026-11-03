@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>FinDocAI | {% block title %}Admin{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="/static/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
         .admin-main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
         .admin-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
@@ -79,7 +79,7 @@
 </header>
 
 <main class="admin-main">
-    {% if session.get('admin') %}
+    {% if is_admin %}
     <div class="admin-top">
         <div>
             <div class="eyebrow"><span></span>ADMIN PANEL</div>
@@ -87,10 +87,10 @@
             <p>{% block subheading %}{% endblock %}</p>
         </div>
         <div class="admin-tabs">
-            <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if active == 'dashboard' }}">Dashboard</a>
-            <a href="{{ url_for('admin.settings_page') }}" class="{{ 'active' if active == 'settings' }}">Settings</a>
-            <a href="{{ url_for('admin.self_test') }}" class="{{ 'active' if active == 'selftest' }}">Self-test</a>
-            <form method="post" action="{{ url_for('admin.logout') }}">
+            <a href="/admin/" class="{{ 'active' if active == 'dashboard' }}">Dashboard</a>
+            <a href="/admin/settings" class="{{ 'active' if active == 'settings' }}">Settings</a>
+            <a href="/admin/self-test" class="{{ 'active' if active == 'selftest' }}">Self-test</a>
+            <form method="post" action="/admin/logout">
                 <input type="hidden" name="csrf" value="{{ csrf_token() }}">
                 <button type="submit">Log out</button>
             </form>

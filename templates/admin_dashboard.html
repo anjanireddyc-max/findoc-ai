@@ -49,7 +49,7 @@
     <div class="btn-row" style="justify-content:space-between;margin-bottom:10px">
         <h2 style="margin:0">Recent analyses</h2>
         {% if activity.recent %}
-        <form method="post" action="{{ url_for('admin.activity_clear') }}">
+        <form method="post" action="/admin/activity/clear">
             <input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <button type="submit" class="abtn ghost">Clear activity</button>
         </form>
@@ -86,7 +86,7 @@
             <tr><td>JPEG threshold</td><td class="num">z &ge; {{ values.jpeg_threshold }} <span class="muted">(trained {{ status.trained_jpeg_threshold }})</span></td></tr>
             <tr><td>File types</td><td>{% for g in ['images', 'pdf', 'word', 'powerpoint'] %}{% if values['allow_' ~ g] %}{{ g }} {% endif %}{% endfor %}</td></tr>
         </table>
-        <p style="margin:14px 0 0"><a class="abtn ghost" href="{{ url_for('admin.settings_page') }}">Change settings</a></p>
+        <p style="margin:14px 0 0"><a class="abtn ghost" href="/admin/settings">Change settings</a></p>
     </div>
     <div class="panel">
         <h2>Model performance (test set)</h2>

@@ -74,7 +74,7 @@
 
     <div class="btn-row">
         <button type="submit" class="abtn accent">Save settings</button>
-        <button type="submit" class="abtn ghost" formaction="{{ url_for('admin.settings_reset') }}"
+        <button type="submit" class="abtn ghost" formaction="/admin/settings/reset"
                 onclick="return confirm('Reset all settings to the trained defaults?')">Reset to defaults</button>
     </div>
 </form>

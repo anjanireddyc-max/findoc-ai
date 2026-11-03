@@ -1,4 +1,8 @@
-flask>=3.0
+fastapi>=0.115
+uvicorn
+python-multipart
+itsdangerous
+jinja2
 numpy
 pillow
 pymupdf

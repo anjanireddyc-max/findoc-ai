@@ -5,8 +5,8 @@
 {% block content %}
 <div class="panel">
     <h2>Sample documents</h2>
-    <p class="hint">Each sample is sent to /predict exactly like a user upload, using the current settings.
-        Self-test runs are not counted in the activity log and ignore maintenance mode and disabled file types.</p>
+    <p class="hint">Each sample goes through the same analysis function as a user upload (run_analysis), using the
+        current thresholds. Self-test runs are not counted in the activity log and still work in maintenance mode.</p>
 
     {% if results %}
     {% set passed = results|selectattr('passed')|list|length %}

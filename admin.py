@@ -1,4 +1,4 @@
-"""Admin pages: login, dashboard, settings and a self-test of the detection system.
+"""Admin pages (FastAPI router): login, dashboard, settings and a self-test of the detector.
 
 The admin password comes from the ADMIN_PASSWORD environment variable (on Vercel it is set
 in the project's environment variables). For a local run it can also be read from the file
@@ -8,20 +8,20 @@ import hashlib
 import hmac
 import os
 import platform
-import re
 import secrets
 import time
-from functools import wraps
 
-from flask import Blueprint, abort, current_app, redirect, render_template, request, session, url_for
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from starlette.concurrency import run_in_threadpool
+from starlette.middleware.sessions import SessionMiddleware
 
 import admin_settings as settings
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLES_DIR = os.path.join(BASE_DIR, "admin_samples")
-SELF_TEST_HEADER = "X-FinDoc-Self-Test"
 
-# sample file -> expected result (all taken from the test split or made for the demo)
+# sample file -> expected result (from the test split, or made for the demo)
 SAMPLES = [
     ("tampered_receipt.png", "Tampered", "Scanned receipt with edited prices"),
     ("genuine_receipt.png", "Genuine", "Untouched scanned receipt"),
@@ -29,8 +29,8 @@ SAMPLES = [
     ("genuine_invoice.pdf", "No signs of editing found", "Typed PDF invoice saved once"),
 ]
 
-bp = Blueprint("admin", __name__, url_prefix="/admin")
-
+router = APIRouter(prefix="/admin", include_in_schema=False)
+_state = {}                   # templates, status function and analysis function, set by init_admin
 _failed = {}                  # ip -> (failures, first failure time)
 MAX_FAILURES, LOCK_SECONDS = 5, 300
 
@@ -45,50 +45,55 @@ def admin_password():
     return password
 
 
-def init_admin(app, status):
-    """status: function returning a dict about the loaded detectors (called by the dashboard)."""
+def init_admin(app, templates, status, analyse):
+    """Adds the signed-cookie session middleware and the /admin routes to the FastAPI app."""
     password = admin_password()
     # The session key must be the same on every Vercel instance, so it is derived from secrets
     # that all instances share instead of being random per instance.
-    app.secret_key = os.environ.get("SECRET_KEY") or hashlib.sha256(
+    secret = os.environ.get("SECRET_KEY") or hashlib.sha256(
         ("findoc-admin-session:" + (password or secrets.token_hex(16))).encode()).hexdigest()
-    app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
-                      SESSION_COOKIE_SECURE=settings.ON_VERCEL, PERMANENT_SESSION_LIFETIME=4 * 3600)
-    app.config["SELF_TEST_TOKEN"] = secrets.token_hex(16)
-    app.extensions["findoc_status"] = status
-    app.register_blueprint(bp)
+    app.add_middleware(SessionMiddleware, secret_key=secret, session_cookie="findoc_admin",
+                       max_age=4 * 3600, same_site="lax", https_only=settings.ON_VERCEL)
+    _state.update(templates=templates, status=status, analyse=analyse)
+    app.include_router(router)
 
 
 # ------------------------------------------------------------------ helpers
 
-def _csrf_token():
-    if "csrf" not in session:
-        session["csrf"] = secrets.token_hex(16)
-    return session["csrf"]
+def _csrf(request):
+    if "csrf" not in request.session:
+        request.session["csrf"] = secrets.token_hex(16)
+    return request.session["csrf"]
 
 
-def _check_csrf():
-    sent = request.form.get("csrf", "")
-    if not sent or not hmac.compare_digest(sent, session.get("csrf", "")):
-        abort(400, "The form expired. Please go back and try again.")
+def _render(request, name, status_code=200, **context):
+    token = _csrf(request)
+    context.update(is_admin=bool(request.session.get("admin")), csrf_token=lambda: token)
+    return _state["templates"].TemplateResponse(request, name, context, status_code=status_code)
 
 
-@bp.app_context_processor
-def _inject():
-    return {"csrf_token": _csrf_token}
+async def _form(request):
+    """Reads the submitted form and checks its CSRF token."""
+    form = await request.form()
+    sent = str(form.get("csrf", ""))
+    if not sent or not hmac.compare_digest(sent, request.session.get("csrf", "")):
+        return None
+    return form
 
 
-def login_required(view):
-    @wraps(view)
-    def wrapper(*args, **kwargs):
-        if not session.get("admin"):
-            return redirect(url_for("admin.login", next=request.path))
-        return view(*args, **kwargs)
-    return wrapper
+def _expired(request):
+    return HTMLResponse("The form expired. Please go back, reload the page and try again.", status_code=400)
 
 
-def _client_ip():
-    return (request.headers.get("X-Forwarded-For", request.remote_addr or "") or "").split(",")[0].strip()
+def _not_logged_in(request):
+    if request.session.get("admin"):
+        return None
+    return RedirectResponse(f"/admin/login?next={request.url.path}", status_code=302)
+
+
+def _client_ip(request):
+    forwarded = request.headers.get("x-forwarded-for", "")
+    return forwarded.split(",")[0].strip() or (request.client.host if request.client else "")
 
 
 def _locked(ip):
@@ -102,105 +107,133 @@ def _locked(ip):
 
 # ------------------------------------------------------------------ routes
 
-@bp.route("/login", methods=["GET", "POST"])
-def login():
+@router.get("/login")
+def login_page(request: Request):
+    if not admin_password():
+        return _render(request, "admin_login.html", not_configured=True)
+    if request.session.get("admin"):
+        return RedirectResponse("/admin/", status_code=302)
+    return _render(request, "admin_login.html")
+
+
+@router.post("/login")
+async def login(request: Request):
     password = admin_password()
     if not password:
-        return render_template("admin_login.html", not_configured=True)
-    if session.get("admin"):
-        return redirect(url_for("admin.dashboard"))
-    error = None
-    ip = _client_ip()
-    if request.method == "POST":
-        _check_csrf()
-        minutes = _locked(ip)
-        if minutes:
-            error = f"Too many wrong attempts. Try again in {minutes} minute(s)."
-        elif hmac.compare_digest(request.form.get("password", "").encode(), password.encode()):
-            _failed.pop(ip, None)
-            session.clear()
-            session.permanent = True
-            session["admin"] = True
-            target = request.args.get("next", "")
-            return redirect(target if target.startswith("/admin") else url_for("admin.dashboard"))
-        else:
-            failures, first = _failed.get(ip, (0, time.time()))
-            _failed[ip] = (failures + 1, first)
-            error = "Wrong password."
-    return render_template("admin_login.html", error=error)
+        return _render(request, "admin_login.html", not_configured=True)
+    form = await _form(request)
+    if form is None:
+        return _expired(request)
+    ip = _client_ip(request)
+    minutes = _locked(ip)
+    if minutes:
+        return _render(request, "admin_login.html", error=f"Too many wrong attempts. Try again in {minutes} minute(s).")
+    if hmac.compare_digest(str(form.get("password", "")).encode(), password.encode()):
+        _failed.pop(ip, None)
+        request.session.clear()
+        request.session["admin"] = True
+        target = request.query_params.get("next", "")
+        return RedirectResponse(target if target.startswith("/admin") else "/admin/", status_code=302)
+    failures, first = _failed.get(ip, (0, time.time()))
+    _failed[ip] = (failures + 1, first)
+    return _render(request, "admin_login.html", error="Wrong password.")
 
 
-@bp.route("/logout", methods=["POST"])
-def logout():
-    _check_csrf()
-    session.clear()
-    return redirect(url_for("admin.login"))
+@router.post("/logout")
+async def logout(request: Request):
+    if await _form(request) is None:
+        return _expired(request)
+    request.session.clear()
+    return RedirectResponse("/admin/login", status_code=302)
 
 
-@bp.route("/")
-@login_required
-def dashboard():
-    status = current_app.extensions["findoc_status"]()
-    return render_template("admin_dashboard.html", active="dashboard", status=status,
-                           activity=settings.activity(), values=settings.load(),
-                           python=platform.python_version(), on_vercel=settings.ON_VERCEL)
+@router.get("/")
+def dashboard(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    return _render(request, "admin_dashboard.html", active="dashboard", status=_state["status"](),
+                   activity=settings.activity(), values=settings.load(),
+                   python=platform.python_version(), on_vercel=settings.ON_VERCEL)
 
 
-@bp.route("/settings", methods=["GET", "POST"])
-@login_required
-def settings_page():
-    errors, saved = [], False
-    values = settings.load()
-    if request.method == "POST":
-        _check_csrf()
-        values, errors = settings.validate(request.form)
-        if not errors:
-            settings.save(values)
-            saved = True
-    return render_template("admin_settings.html", active="settings", values=values, errors=errors, saved=saved,
-                           defaults=settings.defaults(), limits=settings.LIMITS, on_vercel=settings.ON_VERCEL)
+def _settings_page(request, values, errors=(), saved=False):
+    return _render(request, "admin_settings.html", active="settings", values=values, errors=list(errors),
+                   saved=saved, defaults=settings.defaults(), limits=settings.LIMITS, on_vercel=settings.ON_VERCEL)
 
 
-@bp.route("/settings/reset", methods=["POST"])
-@login_required
-def settings_reset():
-    _check_csrf()
+@router.get("/settings")
+def settings_page(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    return _settings_page(request, settings.load())
+
+
+@router.post("/settings")
+async def settings_save(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    form = await _form(request)
+    if form is None:
+        return _expired(request)
+    values, errors = settings.validate(form)
+    if not errors:
+        settings.save(values)
+    return _settings_page(request, values, errors, saved=not errors)
+
+
+@router.post("/settings/reset")
+async def settings_reset(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    if await _form(request) is None:
+        return _expired(request)
     settings.reset()
-    return redirect(url_for("admin.settings_page"))
+    return RedirectResponse("/admin/settings", status_code=302)
 
 
-@bp.route("/activity/clear", methods=["POST"])
-@login_required
-def activity_clear():
-    _check_csrf()
+@router.post("/activity/clear")
+async def activity_clear(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    if await _form(request) is None:
+        return _expired(request)
     settings.clear_activity()
-    return redirect(url_for("admin.dashboard"))
+    return RedirectResponse("/admin/", status_code=302)
 
 
-@bp.route("/self-test", methods=["GET", "POST"])
-@login_required
-def self_test():
-    results = None
-    if request.method == "POST":
-        _check_csrf()
-        results = []
-        client = current_app.test_client()
-        headers = {SELF_TEST_HEADER: current_app.config["SELF_TEST_TOKEN"]}
-        for name, expected, description in SAMPLES:
-            path = os.path.join(SAMPLES_DIR, name)
-            if not os.path.exists(path):
-                results.append(dict(name=name, description=description, expected=expected,
-                                    got="Sample file missing", passed=False, seconds=None, score=None))
-                continue
-            start = time.time()
-            with open(path, "rb") as f:
-                response = client.post("/predict", data={"document": (f, name)}, headers=headers,
-                                       content_type="multipart/form-data")
-            html = response.get_data(as_text=True)
-            verdict = re.search(r'data-verdict="([^"]*)"', html)
-            score = re.search(r'data-score="([^"]*)"', html)
-            got = verdict.group(1) if verdict else f"No result (HTTP {response.status_code})"
-            results.append(dict(name=name, description=description, expected=expected, got=got,
-                                passed=got == expected, seconds=f"{time.time() - start:.1f}",
-                                score=score.group(1) if score and score.group(1) else None))
-    return render_template("admin_selftest.html", active="selftest", results=results, samples=SAMPLES)
+def _run_samples():
+    results = []
+    for name, expected, description in SAMPLES:
+        path = os.path.join(SAMPLES_DIR, name)
+        row = dict(name=name, description=description, expected=expected, seconds=None, score=None)
+        if not os.path.exists(path):
+            results.append(dict(row, got="Sample file missing", passed=False))
+            continue
+        start = time.time()
+        with open(path, "rb") as f:
+            data = f.read()
+        try:
+            _, summary = _state["analyse"](data, name)
+            got, score = summary["verdict"], summary["score"]
+        except Exception as e:                 # report the problem instead of failing the page
+            got, score = f"Error: {e}", None
+        results.append(dict(row, got=got, passed=got == expected, seconds=f"{time.time() - start:.1f}",
+                            score=None if score is None else f"{score:.2f}"))
+    return results
+
+
+@router.get("/self-test")
+def self_test_page(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    return _render(request, "admin_selftest.html", active="selftest", results=None, samples=SAMPLES)
+
+
+@router.post("/self-test")
+async def self_test(request: Request):
+    if redirect := _not_logged_in(request):
+        return redirect
+    if await _form(request) is None:
+        return _expired(request)
+    results = await run_in_threadpool(_run_samples)
+    return _render(request, "admin_selftest.html", active="selftest", results=results, samples=SAMPLES)
