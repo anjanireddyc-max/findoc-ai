@@ -153,7 +153,7 @@
                             type="file"
                             name="document"
                             id="documentInput"
-                            accept="image/*,.pdf,.doc,.docx,.ppt,.pptx"
+                            accept="{{ accept or 'image/*,.pdf,.doc,.docx,.ppt,.pptx' }}"
                             hidden
                         >
 
@@ -273,6 +273,7 @@
                     type="submit"
                     class="analyze-button"
                     id="analyzeButton"
+                    {% if maintenance %}disabled style="opacity:.5;cursor:not-allowed"{% endif %}
                 >
                     Analyze Document
                     <span>→</span>
@@ -378,7 +379,7 @@
             </strong>
 
             <p>
-                AI-powered financial document analysis.
+                AI-powered financial document analysis. <a href="/admin/" style="color:inherit;opacity:.6;margin-left:6px">Admin</a>
             </p>
         </div>
 

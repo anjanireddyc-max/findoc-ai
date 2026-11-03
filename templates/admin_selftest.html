@@ -1,0 +1,47 @@
+{% extends "admin_base.html" %}
+{% block title %}Admin Self-test{% endblock %}
+{% block heading %}Self-test{% endblock %}
+{% block subheading %}Runs known sample documents through the full analysis and checks the results.{% endblock %}
+{% block content %}
+<div class="panel">
+    <h2>Sample documents</h2>
+    <p class="hint">Each sample is sent to /predict exactly like a user upload, using the current settings.
+        Self-test runs are not counted in the activity log and ignore maintenance mode and disabled file types.</p>
+
+    {% if results %}
+    {% set passed = results|selectattr('passed')|list|length %}
+    <div class="notice {{ 'success' if passed == results|length else 'error' }}">
+        {{ passed }} of {{ results|length }} checks passed.
+    </div>
+    {% endif %}
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Sample</th><th>Expected</th>{% if results %}<th>Got</th><th>Score</th><th>Time</th><th>Check</th>{% endif %}</tr></thead>
+            <tbody>
+            {% if results %}
+                {% for r in results %}
+                <tr>
+                    <td><strong>{{ r.name }}</strong><br><span class="muted">{{ r.description }}</span></td>
+                    <td>{{ r.expected }}</td>
+                    <td>{{ r.got }}</td>
+                    <td class="num">{{ r.score or '–' }}</td>
+                    <td class="num">{{ (r.seconds ~ ' s') if r.seconds else '–' }}</td>
+                    <td><span class="pill {{ 'pass' if r.passed else 'fail' }}">{{ 'PASS' if r.passed else 'FAIL' }}</span></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                {% for name, expected, description in samples %}
+                <tr><td><strong>{{ name }}</strong><br><span class="muted">{{ description }}</span></td><td>{{ expected }}</td></tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <form method="post" style="margin-top:18px">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="abtn accent">{{ 'Run again' if results else 'Run self-test' }}</button>
+    </form>
+</div>
+{% endblock %}

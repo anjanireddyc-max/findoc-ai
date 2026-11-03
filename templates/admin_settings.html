@@ -1,0 +1,81 @@
+{% extends "admin_base.html" %}
+{% block title %}Admin Settings{% endblock %}
+{% block heading %}Settings{% endblock %}
+{% block subheading %}Change how the detector decides and what users can upload.{% endblock %}
+{% block content %}
+
+{% if saved %}<div class="notice success">Settings saved. They apply to the next analysis.</div>{% endif %}
+{% for e in errors %}<div class="notice error">{{ e }}</div>{% endfor %}
+{% if on_vercel %}
+<div class="notice info">On Vercel, saved settings are kept while this server instance runs and go back to the
+    defaults when Vercel starts a new one (after a long idle time or a new deployment). To change a value permanently,
+    update <code>models/ela_threshold.json</code> or the defaults in <code>admin_settings.py</code> and redeploy.</div>
+{% endif %}
+
+<form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <div class="two-col">
+        <div class="panel">
+            <h2>Decision thresholds</h2>
+            <p class="hint">A document is reported as Tampered when its ELA score (z-score of the most unusual
+                text region) is at or above the threshold. Lower = catches more edits but more false alarms.</p>
+            <div class="field">
+                <label for="scan_threshold">Scans, PNG and PDF pages</label>
+                <input type="number" step="0.01" id="scan_threshold" name="scan_threshold"
+                       min="{{ limits.scan_threshold[0] }}" max="{{ limits.scan_threshold[1] }}" value="{{ values.scan_threshold }}">
+                <div class="help">Trained value: {{ defaults.scan_threshold }} (chosen on the validation receipts)</div>
+            </div>
+            <div class="field">
+                <label for="jpeg_threshold">JPEG uploads</label>
+                <input type="number" step="0.01" id="jpeg_threshold" name="jpeg_threshold"
+                       min="{{ limits.jpeg_threshold[0] }}" max="{{ limits.jpeg_threshold[1] }}" value="{{ values.jpeg_threshold }}">
+                <div class="help">Trained value: {{ defaults.jpeg_threshold }} (JPEGs were already compressed once)</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Uploads</h2>
+            <p class="hint">Limits for each uploaded document.</p>
+            <div class="field">
+                <label for="max_upload_mb">Maximum file size (MB)</label>
+                <input type="number" step="1" id="max_upload_mb" name="max_upload_mb"
+                       min="{{ limits.max_upload_mb[0] }}" max="{{ limits.max_upload_mb[1] }}" value="{{ values.max_upload_mb }}">
+                <div class="help">Allowed: {{ limits.max_upload_mb[0] }}–{{ limits.max_upload_mb[1] }} MB{% if on_vercel %} (Vercel accepts at most about 4.5 MB per request){% endif %}</div>
+            </div>
+            <div class="field">
+                <label for="max_pages">Pages analysed per PDF / Word / PowerPoint file</label>
+                <input type="number" step="1" id="max_pages" name="max_pages"
+                       min="{{ limits.max_pages[0] }}" max="{{ limits.max_pages[1] }}" value="{{ values.max_pages }}">
+                <div class="help">More pages take longer to analyse.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="two-col">
+        <div class="panel">
+            <h2>Allowed file types</h2>
+            <p class="hint">Disabled types are rejected with a message on the Detect page.</p>
+            <label class="check"><input type="checkbox" name="allow_images" {{ 'checked' if values.allow_images }}> Images (PNG, JPG, BMP, TIFF, WEBP, camera photos)</label>
+            <label class="check"><input type="checkbox" name="allow_pdf" {{ 'checked' if values.allow_pdf }}> PDF</label>
+            <label class="check"><input type="checkbox" name="allow_word" {{ 'checked' if values.allow_word }}> Word (DOCX, DOC)</label>
+            <label class="check"><input type="checkbox" name="allow_powerpoint" {{ 'checked' if values.allow_powerpoint }}> PowerPoint (PPTX, PPT)</label>
+        </div>
+
+        <div class="panel">
+            <h2>Maintenance mode</h2>
+            <p class="hint">Stops new analyses and shows a message on the Detect page.</p>
+            <label class="check"><input type="checkbox" name="maintenance" {{ 'checked' if values.maintenance }}> Turn on maintenance mode</label>
+            <div class="field" style="margin-top:12px">
+                <label for="maintenance_message">Message for users</label>
+                <input type="text" id="maintenance_message" name="maintenance_message" maxlength="200" value="{{ values.maintenance_message }}">
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <button type="submit" class="abtn accent">Save settings</button>
+        <button type="submit" class="abtn ghost" formaction="{{ url_for('admin.settings_reset') }}"
+                onclick="return confirm('Reset all settings to the trained defaults?')">Reset to defaults</button>
+    </div>
+</form>
+{% endblock %}

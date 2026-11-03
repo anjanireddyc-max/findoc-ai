@@ -1,0 +1,105 @@
+{% extends "admin_base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block subheading %}System status, current settings and recent analyses.{% endblock %}
+{% block content %}
+{% set c = activity.counts %}
+
+{% if values.maintenance %}
+<div class="notice error">Maintenance mode is ON: users cannot analyse documents. Turn it off in Settings.</div>
+{% endif %}
+
+<div class="panel">
+    <h2>System status</h2>
+    <p class="hint">Checked when this page was loaded.</p>
+    <div class="grid">
+        <div class="stat"><div class="label">ELA detector</div>
+            <div class="value {{ 'ok' if status.ela_ready else 'bad' }}">{{ 'Ready' if status.ela_ready else 'Error' }}</div>
+            <div class="sub">Error Level Analysis, JPEG q70, 64&times;64 regions</div></div>
+        <div class="stat"><div class="label">EfficientNetV2B0-ELA</div>
+            <div class="value {{ 'ok' if status.cnn_loaded else 'bad' }}">{{ 'Loaded' if status.cnn_loaded else 'Not loaded' }}</div>
+            <div class="sub">ONNX Runtime {{ status.onnxruntime or 'not installed' }}</div></div>
+        <div class="stat"><div class="label">Server</div>
+            <div class="value">{{ 'Vercel' if on_vercel else 'Local' }}</div>
+            <div class="sub">Python {{ python }} &middot; up {{ activity.uptime }}</div></div>
+        <div class="stat"><div class="label">Upload page</div>
+            <div class="value {{ 'bad' if values.maintenance else 'ok' }}">{{ 'Maintenance' if values.maintenance else 'Online' }}</div>
+            <div class="sub">Max {{ values.max_upload_mb }} MB &middot; {{ values.max_pages }} pages</div></div>
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Activity</h2>
+    <p class="hint">Since this server instance started{% if on_vercel %} (Vercel may restart it after some idle time){% endif %}.
+        Only a summary is kept in memory; uploaded documents are never stored.</p>
+    <div class="grid">
+        <div class="stat"><div class="label">Requests</div><div class="value">{{ c.get('total', 0) }}</div></div>
+        <div class="stat"><div class="label">Tampered</div><div class="value bad">{{ c.get('Tampered', 0) }}</div><div class="sub">scanned documents</div></div>
+        <div class="stat"><div class="label">Genuine</div><div class="value ok">{{ c.get('Genuine', 0) }}</div><div class="sub">scanned documents</div></div>
+        <div class="stat"><div class="label">Metadata edited / clean</div><div class="value">{{ c.get('Edited', 0) }} / {{ c.get('Clean', 0) }}</div><div class="sub">typed Word, PPT, PDF</div></div>
+        <div class="stat"><div class="label">Rejected</div><div class="value">{{ c.get('Rejected', 0) }}</div><div class="sub">wrong type, too large, maintenance</div></div>
+    </div>
+    {% if activity.types %}
+    <p class="muted" style="margin:14px 0 0;font-size:14px">By file type:
+        {% for t, n in activity.types.items() %}{{ t }} {{ n }}{% if not loop.last %} &middot; {% endif %}{% endfor %}</p>
+    {% endif %}
+</div>
+
+<div class="panel">
+    <div class="btn-row" style="justify-content:space-between;margin-bottom:10px">
+        <h2 style="margin:0">Recent analyses</h2>
+        {% if activity.recent %}
+        <form method="post" action="{{ url_for('admin.activity_clear') }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <button type="submit" class="abtn ghost">Clear activity</button>
+        </form>
+        {% endif %}
+    </div>
+    {% if activity.recent %}
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Time (IST)</th><th>File type</th><th>Result</th><th>Score</th><th>Time taken</th><th>Details</th></tr></thead>
+            <tbody>
+            {% for r in activity.recent %}
+            <tr>
+                <td class="num">{{ r.time }}</td>
+                <td>{{ r.type }}</td>
+                <td><span class="pill {{ r.outcome|lower }}">{{ r.outcome }}</span></td>
+                <td class="num">{{ r.score or '–' }}</td>
+                <td class="num">{{ (r.seconds ~ ' s') if r.seconds else '–' }}</td>
+                <td>{{ r.detail }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted" style="margin:0">No documents analysed yet on this server instance.</p>
+    {% endif %}
+</div>
+
+<div class="two-col">
+    <div class="panel">
+        <h2>Current detection settings</h2>
+        <table class="admin-table">
+            <tr><td>Scan / PDF threshold</td><td class="num">z &ge; {{ values.scan_threshold }} <span class="muted">(trained {{ status.trained_scan_threshold }})</span></td></tr>
+            <tr><td>JPEG threshold</td><td class="num">z &ge; {{ values.jpeg_threshold }} <span class="muted">(trained {{ status.trained_jpeg_threshold }})</span></td></tr>
+            <tr><td>File types</td><td>{% for g in ['images', 'pdf', 'word', 'powerpoint'] %}{% if values['allow_' ~ g] %}{{ g }} {% endif %}{% endfor %}</td></tr>
+        </table>
+        <p style="margin:14px 0 0"><a class="abtn ghost" href="{{ url_for('admin.settings_page') }}">Change settings</a></p>
+    </div>
+    <div class="panel">
+        <h2>Model performance (test set)</h2>
+        {% set m = status.metrics %}
+        {% if m %}
+        <table class="admin-table">
+            <tr><td>Accuracy</td><td class="num">{{ m.accuracy }}%</td></tr>
+            <tr><td>Precision / Recall</td><td class="num">{{ m.precision }}% / {{ m.recall }}%</td></tr>
+            <tr><td>F1-score</td><td class="num">{{ m.f1 }}%</td></tr>
+            <tr><td>ROC-AUC</td><td class="num">{{ m.auc }}%</td></tr>
+            <tr><td>Test receipts</td><td class="num">{{ m.documents }} ({{ m.tampered }} tampered)</td></tr>
+        </table>
+        {% else %}<p class="muted">Metrics file not found.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

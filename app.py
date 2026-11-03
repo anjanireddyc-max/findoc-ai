@@ -2,11 +2,15 @@ import base64
 import io
 import json
 import os
+import time
 
 import numpy as np
 from flask import Flask, render_template, request
 from PIL import Image, ImageDraw
 
+import admin_settings
+import converter
+from admin import SELF_TEST_HEADER, init_admin
 from converter import ALLOWED_EXTENSIONS, ConversionError, extension, load_pages
 from forensics import ELADetector, WINDOW, STEP, QUALITY
 from metadata import inspect as inspect_file
@@ -23,10 +27,8 @@ except Exception:                      # pragma: no cover - model or runtime not
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 METRICS_PATH = os.path.join(BASE_DIR, "models", "final_metrics.json")
-MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "4" if os.environ.get("VERCEL") else "25"))
-
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = admin_settings.load()["max_upload_mb"] * 1024 * 1024
 
 
 # =========================================================
@@ -42,6 +44,30 @@ if ELACNN is not None:
         print("ELA-CNN not loaded:", e)
 print(f"ELA detector ready (threshold z >= {ela_detector.threshold:.2f}); "
       f"EfficientNetV2B0-ELA model: {'loaded' if cnn else 'not available'}")
+
+
+def system_status():
+    """Shown on the admin dashboard."""
+    try:
+        import onnxruntime
+        ort_version = onnxruntime.__version__
+    except Exception:
+        ort_version = None
+    return {"ela_ready": ela_detector is not None, "cnn_loaded": cnn is not None, "onnxruntime": ort_version,
+            "trained_scan_threshold": admin_settings.defaults()["scan_threshold"],
+            "trained_jpeg_threshold": admin_settings.defaults()["jpeg_threshold"], "metrics": load_metrics()}
+
+
+init_admin(app, system_status)
+
+
+@app.before_request
+def apply_settings():
+    """Applies the admin settings to every request (they can change while the app runs)."""
+    cfg = admin_settings.load()
+    app.config["MAX_CONTENT_LENGTH"] = cfg["max_upload_mb"] * 1024 * 1024
+    ela_detector.threshold, ela_detector.jpeg_threshold = cfg["scan_threshold"], cfg["jpeg_threshold"]
+    converter.MAX_PAGES = cfg["max_pages"]
 
 
 # =========================================================
@@ -213,9 +239,18 @@ def home():
     return render_template("index.html")
 
 
+def detect_page(error=None, status=200):
+    cfg = admin_settings.load()
+    if cfg["maintenance"] and not error:
+        error = cfg["maintenance_message"]
+    accept = ",".join("." + e for e in sorted(admin_settings.allowed_extensions(cfg)))
+    return render_template("detect.html", error=error, max_mb=cfg["max_upload_mb"], accept=accept,
+                           maintenance=cfg["maintenance"]), status
+
+
 @app.route("/detect")
 def detect():
-    return render_template("detect.html", max_mb=MAX_UPLOAD_MB)
+    return detect_page()
 
 
 @app.route("/how-it-works")
@@ -235,32 +270,57 @@ def about():
 
 @app.errorhandler(413)
 def too_large(_):
-    return render_template("detect.html", error=f"The file is larger than {MAX_UPLOAD_MB} MB."), 413
+    admin_settings.record("upload", "Rejected", detail="file too large")
+    return detect_page(f"The file is larger than {admin_settings.load()['max_upload_mb']} MB.", 413)
 
 
 # =========================================================
 # PREDICT
 # =========================================================
 
+def is_self_test():
+    sent = request.headers.get(SELF_TEST_HEADER, "")
+    return bool(sent) and sent == app.config["SELF_TEST_TOKEN"]
+
+
+def log(file_type, outcome, score=None, started=None, detail=""):
+    if not is_self_test():
+        admin_settings.record(file_type, outcome, score, None if started is None else time.time() - started, detail)
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
+    started = time.time()
+    cfg = admin_settings.load()
+    if cfg["maintenance"] and not is_self_test():
+        log("upload", "Rejected", detail="maintenance mode")
+        return detect_page(cfg["maintenance_message"], 503)
     file = request.files.get("document")
     if file is None or file.filename == "":
-        return render_template("detect.html", error="Please upload or capture a document.")
-    if extension(file.filename) not in ALLOWED_EXTENSIONS:
-        return render_template("detect.html", error="Supported files: images (PNG, JPG, BMP, TIFF, WEBP), PDF, "
-                                                    "Word (DOCX, DOC) and PowerPoint (PPTX, PPT).")
+        return detect_page("Please upload or capture a document.")
+    ext = extension(file.filename)
+    file_type = admin_settings.group_of(ext)
+    if ext not in ALLOWED_EXTENSIONS:
+        log(file_type, "Rejected", detail=f".{ext} not supported")
+        return detect_page("Supported files: images (PNG, JPG, BMP, TIFF, WEBP), PDF, "
+                           "Word (DOCX, DOC) and PowerPoint (PPTX, PPT).")
+    if ext not in admin_settings.allowed_extensions(cfg) and not is_self_test():
+        log(file_type, "Rejected", detail=f".{ext} disabled by admin")
+        return detect_page(f"{file_type.capitalize()} files are currently disabled. Please upload another file type.")
     data = file.read()
     try:
         pages = load_pages(data, file.filename)
     except ConversionError as e:
-        return render_template("detect.html", error=str(e))
+        log(file_type, "Rejected", detail=str(e)[:80])
+        return detect_page(str(e))
 
     used_pictures = any(label.startswith("Picture") for label, _ in pages)
     info = inspect_file(data, extension(file.filename), used_pictures)
     common = dict(file_name=file.filename, page_count=len(pages), kind=info["kind"], signals=info["signals"])
 
     if info["digital"]:                    # typed Word / PowerPoint / digital PDF
+        log(file_type, "Edited" if info["signals"] > 0 else "Clean", started=started,
+            detail=f"{info['signals']} metadata signal(s)")
         return metadata_result(info, pages, common)   # (see Section 4.11.6)
 
     # ---------------- scanned / photographed documents: ELA ----------------
@@ -285,6 +345,7 @@ def predict():
     region = region.resize((320, 320), Image.NEAREST)
 
     reasons, steps = explain(a, page_label, len(pages), load_metrics(), info)
+    log(file_type, a["label"], a["decision_score"], started, f"{a['flagged']} region(s) flagged")
     return render_template(
         "result.html", digital=False, **common,
         result=a["label"],

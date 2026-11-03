@@ -36,3 +36,7 @@ models/efficientnetv2b0_patch_tampering_v2.keras
 .env*
 models/ela_backbone_fp32.onnx
 *.onnx.data
+
+# admin panel: local password and saved settings (never committed)
+admin_password.txt
+models/admin_settings.json
