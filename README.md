@@ -45,7 +45,7 @@ python export_onnx.py                       # ONNX backbone + head weights for t
 
 ## Deployment
 
-Vercel detects the FastAPI `app` in `app.py` (Python 3.12). The web app needs only FastAPI, python-multipart,
+Vercel detects the FastAPI `app` in `app.py` with zero configuration (`vercel.json` is empty; `pyproject.toml` lists the packages and `.python-version` selects Python 3.12). The web app needs only FastAPI, python-multipart,
 itsdangerous, Jinja2, NumPy, Pillow, PyMuPDF and ONNX Runtime (no TensorFlow). Uploads are limited to 4 MB on Vercel.
 Set the `ADMIN_PASSWORD` environment variable to enable the admin panel at `/admin`.
 

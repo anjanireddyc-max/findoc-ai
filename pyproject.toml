@@ -1,0 +1,5 @@
+[project]
+name = "findoc-ai"
+version = "2.0.0"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115", "python-multipart", "itsdangerous", "jinja2", "numpy", "pillow", "pymupdf", "onnxruntime"]
