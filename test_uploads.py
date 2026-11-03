@@ -1,11 +1,13 @@
-"""Uploads sample files to the app (Flask test client) and prints verdicts and reasons."""
+"""Uploads sample files to the app (FastAPI TestClient) and prints verdicts and reasons."""
 import html as H
 import re
 import time
 
+from fastapi.testclient import TestClient
+
 import app
 
-client = app.app.test_client()
+client = TestClient(app.app)
 tests = [("test_files/tampered_receipt.pdf", "tampered_receipt.pdf"), ("test_files/two_pages.pdf", "two_pages.pdf"),
          ("test_files/receipt_in_word.docx", "receipt_in_word.docx"), ("test_files/text_invoice.docx", "text_invoice.docx"),
          ("static/uploads/sample_medical_template.png", "medical_template.png"), ("dataset/test/X00016469619.png", "genuine_receipt.png"),
@@ -16,8 +18,8 @@ tests = [("test_files/tampered_receipt.pdf", "tampered_receipt.pdf"), ("test_fil
 for path, name in tests:
     start = time.time()
     with open(path, "rb") as f:
-        r = client.post("/predict", data={"document": (f, name)}, content_type="multipart/form-data")
-    page = r.data.decode()
+        r = client.post("/predict", files={"document": (name, f.read())})
+    page = r.text
     verdict = re.search(r"<h2>\s*(Genuine|Tampered|Signs of editing found|No signs of editing found)\s*</h2>", page)
     error = re.search(r'class="error-message">\s*(.*?)\s*</div>', page, re.S)
     reasons = [H.unescape(re.sub(r"\s+", " ", x)).strip() for x in re.findall(r"<li>(.*?)</li>", page, re.S)]
