@@ -7,6 +7,9 @@ code - only a one-way hash of it (ADMIN_KEY_HASH), so it cannot be read from Git
 After a correct login the session cookie keeps "key". Every admin page checks that
 SHA-256(key) equals the stored hash, so a forged cookie without the real password cannot pass.
 Setting the ADMIN_PASSWORD environment variable replaces the built-in password.
+
+The project owner's username (OWNER_USERNAME) can log in without a password, as requested for
+the demo. Anyone who knows that name can open the admin panel.
 """
 import hashlib
 import hmac
@@ -40,6 +43,7 @@ MAX_FAILURES, LOCK_SECONDS = 5, 300
 
 
 ADMIN_USERNAME = "admin"
+OWNER_USERNAME = "anjani"          # logs in without a password
 SALT, ROUNDS = b"findoc-admin-v1", 200_000
 ADMIN_KEY_HASH = "a29210646f179d4e4238b9a79809ff4c6326e8cfefff59d89128b957b366654f"
 
@@ -58,6 +62,8 @@ def _expected_hash():
 
 
 def _is_admin(request):
+    if request.session.get("owner") == OWNER_USERNAME:
+        return True
     key = request.session.get("admin_key", "")
     try:
         digest = hashlib.sha256(bytes.fromhex(key)).hexdigest() if key else ""
@@ -142,6 +148,13 @@ async def login(request: Request):
     minutes = _locked(ip)
     if minutes:
         return _render(request, "admin_login.html", error=f"Too many wrong attempts. Try again in {minutes} minute(s).")
+    username = str(form.get("username", "")).strip().lower()
+    if hmac.compare_digest(username, OWNER_USERNAME):                  # owner: no password needed
+        _failed.pop(ip, None)
+        request.session.clear()
+        request.session["owner"] = OWNER_USERNAME
+        target = request.query_params.get("next", "")
+        return RedirectResponse(target if target.startswith("/admin") else "/admin/", status_code=302)
     key = await run_in_threadpool(_derive_key, str(form.get("password", "")))     # slow hash off the event loop
     username_ok = hmac.compare_digest(str(form.get("username", "")).strip().lower(), ADMIN_USERNAME)
     if username_ok and hmac.compare_digest(hashlib.sha256(key).hexdigest(), _expected_hash()):
