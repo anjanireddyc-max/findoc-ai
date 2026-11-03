@@ -4,22 +4,19 @@
 <div class="panel" style="max-width:440px;margin:40px auto">
     <div class="eyebrow"><span></span>ADMIN PANEL</div>
     <h1 style="font-size:26px;margin:8px 0 6px;color:var(--ink)">Admin login</h1>
-    {% if not_configured %}
-    <div class="notice info" style="margin-top:14px">
-        The admin panel is not set up yet. Set the <strong>ADMIN_PASSWORD</strong> environment variable
-        (on Vercel: Project Settings &rarr; Environment Variables) and redeploy.
-    </div>
-    {% else %}
     <p class="hint">Manage the detection settings, see recent activity and run a self-test.</p>
     {% if error %}<div class="notice error">{{ error }}</div>{% endif %}
     <form method="post">
         <input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" autocomplete="current-password" required autofocus>
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
         </div>
         <button type="submit" class="abtn accent">Log in</button>
     </form>
-    {% endif %}
 </div>
 {% endblock %}

@@ -1,8 +1,12 @@
 """Admin pages (FastAPI router): login, dashboard, settings and a self-test of the detector.
 
-The admin password comes from the ADMIN_PASSWORD environment variable (on Vercel it is set
-in the project's environment variables). For a local run it can also be read from the file
-admin_password.txt next to app.py, which is never committed or deployed.
+Login is built in: username "admin" and a fixed password. The password itself is NOT in the
+code - only a one-way hash of it (ADMIN_KEY_HASH), so it cannot be read from GitHub:
+    key  = PBKDF2-HMAC-SHA256(password, salt, 200 000 rounds)   (slow on purpose: hard to guess)
+    hash = SHA-256(key)                                          (stored below)
+After a correct login the session cookie keeps "key". Every admin page checks that
+SHA-256(key) equals the stored hash, so a forged cookie without the real password cannot pass.
+Setting the ADMIN_PASSWORD environment variable replaces the built-in password.
 """
 import hashlib
 import hmac
@@ -35,23 +39,38 @@ _failed = {}                  # ip -> (failures, first failure time)
 MAX_FAILURES, LOCK_SECONDS = 5, 300
 
 
-def admin_password():
+ADMIN_USERNAME = "admin"
+SALT, ROUNDS = b"findoc-admin-v1", 200_000
+ADMIN_KEY_HASH = "a29210646f179d4e4238b9a79809ff4c6326e8cfefff59d89128b957b366654f"
+
+
+def _derive_key(password):
+    return hashlib.pbkdf2_hmac("sha256", password.encode(), SALT, ROUNDS)
+
+
+def _expected_hash():
     password = os.environ.get("ADMIN_PASSWORD", "")
-    if not password and not settings.ON_VERCEL:
-        path = os.path.join(BASE_DIR, "admin_password.txt")
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as f:
-                password = f.read().strip()
-    return password
+    if password:                                    # optional override, e.g. on Vercel
+        if _state.get("env_password") != password:
+            _state.update(env_password=password, env_hash=hashlib.sha256(_derive_key(password)).hexdigest())
+        return _state["env_hash"]
+    return ADMIN_KEY_HASH
+
+
+def _is_admin(request):
+    key = request.session.get("admin_key", "")
+    try:
+        digest = hashlib.sha256(bytes.fromhex(key)).hexdigest() if key else ""
+    except ValueError:
+        return False
+    return bool(digest) and hmac.compare_digest(digest, _expected_hash())
 
 
 def init_admin(app, templates, status, analyse):
     """Adds the signed-cookie session middleware and the /admin routes to the FastAPI app."""
-    password = admin_password()
-    # The session key must be the same on every Vercel instance, so it is derived from secrets
-    # that all instances share instead of being random per instance.
-    secret = os.environ.get("SECRET_KEY") or hashlib.sha256(
-        ("findoc-admin-session:" + (password or secrets.token_hex(16))).encode()).hexdigest()
+    # The cookie signing key only has to be the same on every Vercel instance; being an admin
+    # depends on the password-derived key inside the session, not on this signature.
+    secret = os.environ.get("SECRET_KEY") or hashlib.sha256(("findoc-session:" + ADMIN_KEY_HASH).encode()).hexdigest()
     app.add_middleware(SessionMiddleware, secret_key=secret, session_cookie="findoc_admin",
                        max_age=4 * 3600, same_site="lax", https_only=settings.ON_VERCEL)
     _state.update(templates=templates, status=status, analyse=analyse)
@@ -68,7 +87,7 @@ def _csrf(request):
 
 def _render(request, name, status_code=200, **context):
     token = _csrf(request)
-    context.update(is_admin=bool(request.session.get("admin")), csrf_token=lambda: token)
+    context.update(is_admin=_is_admin(request), csrf_token=lambda: token)
     return _state["templates"].TemplateResponse(request, name, context, status_code=status_code)
 
 
@@ -86,7 +105,7 @@ def _expired(request):
 
 
 def _not_logged_in(request):
-    if request.session.get("admin"):
+    if _is_admin(request):
         return None
     return RedirectResponse(f"/admin/login?next={request.url.path}", status_code=302)
 
@@ -109,18 +128,13 @@ def _locked(ip):
 
 @router.get("/login")
 def login_page(request: Request):
-    if not admin_password():
-        return _render(request, "admin_login.html", not_configured=True)
-    if request.session.get("admin"):
+    if _is_admin(request):
         return RedirectResponse("/admin/", status_code=302)
     return _render(request, "admin_login.html")
 
 
 @router.post("/login")
 async def login(request: Request):
-    password = admin_password()
-    if not password:
-        return _render(request, "admin_login.html", not_configured=True)
     form = await _form(request)
     if form is None:
         return _expired(request)
@@ -128,15 +142,17 @@ async def login(request: Request):
     minutes = _locked(ip)
     if minutes:
         return _render(request, "admin_login.html", error=f"Too many wrong attempts. Try again in {minutes} minute(s).")
-    if hmac.compare_digest(str(form.get("password", "")).encode(), password.encode()):
+    key = await run_in_threadpool(_derive_key, str(form.get("password", "")))     # slow hash off the event loop
+    username_ok = hmac.compare_digest(str(form.get("username", "")).strip().lower(), ADMIN_USERNAME)
+    if username_ok and hmac.compare_digest(hashlib.sha256(key).hexdigest(), _expected_hash()):
         _failed.pop(ip, None)
         request.session.clear()
-        request.session["admin"] = True
+        request.session["admin_key"] = key.hex()
         target = request.query_params.get("next", "")
         return RedirectResponse(target if target.startswith("/admin") else "/admin/", status_code=302)
     failures, first = _failed.get(ip, (0, time.time()))
     _failed[ip] = (failures + 1, first)
-    return _render(request, "admin_login.html", error="Wrong password.")
+    return _render(request, "admin_login.html", error="Wrong username or password.")
 
 
 @router.post("/logout")
